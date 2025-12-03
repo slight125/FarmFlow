@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ item.name }} - FarmFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-boxes"></i> {{ item.name }}</h1>
+    <div>
+        <a href="{% url 'inventory_update' item.pk %}" class="btn btn-success"><i class="fas fa-edit"></i> Edit</a>
+        <a href="{% url 'inventory_list' %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-3"><strong>Name:</strong> {{ item.name }}</div>
+            <div class="col-md-6 mb-3"><strong>Category:</strong> {{ item.get_category_display }}</div>
+            <div class="col-md-6 mb-3"><strong>Quantity:</strong> {{ item.quantity }} {{ item.get_unit_display }}</div>
+            <div class="col-md-6 mb-3"><strong>Reorder Level:</strong> {{ item.reorder_level }}</div>
+            <div class="col-md-6 mb-3"><strong>Cost Per Unit:</strong> ${{ item.cost_per_unit }}</div>
+            <div class="col-md-6 mb-3"><strong>Total Value:</strong> ${{ item.total_value|floatformat:2 }}</div>
+            {% if item.supplier %}<div class="col-md-6 mb-3"><strong>Supplier:</strong> {{ item.supplier }}</div>{% endif %}
+            {% if item.location %}<div class="col-md-6 mb-3"><strong>Location:</strong> {{ item.location }}</div>{% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

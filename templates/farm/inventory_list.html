@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventory - FarmFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-boxes"></i> Inventory Management</h1>
+    <a href="{% url 'inventory_create' %}" class="btn btn-success"><i class="fas fa-plus"></i> Add Item</a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <select name="category" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Categories</option>
+                    <option value="seed">Seeds</option>
+                    <option value="fertilizer">Fertilizers</option>
+                    <option value="pesticide">Pesticides</option>
+                    <option value="equipment">Equipment</option>
+                    <option value="feed">Animal Feed</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="low_stock" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Stock Levels</option>
+                    <option value="true" {% if low_stock %}selected{% endif %}>Low Stock Only</option>
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if items %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Reorder Level</th>
+                        <th>Unit Cost</th>
+                        <th>Total Value</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td><strong>{{ item.name }}</strong></td>
+                        <td><span class="badge bg-secondary">{{ item.get_category_display }}</span></td>
+                        <td>{{ item.quantity }} {{ item.get_unit_display }}</td>
+                        <td>{{ item.reorder_level }}</td>
+                        <td>${{ item.cost_per_unit }}</td>
+                        <td>${{ item.total_value|floatformat:2 }}</td>
+                        <td>
+                            {% if item.needs_reorder %}
+                            <span class="badge bg-danger"><i class="fas fa-exclamation-triangle"></i> Low Stock</span>
+                            {% else %}
+                            <span class="badge bg-success">Good</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'inventory_detail' item.pk %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></a>
+                            <a href="{% url 'inventory_update' item.pk %}" class="btn btn-sm btn-outline-success"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'inventory_delete' item.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-boxes fa-4x text-muted mb-3"></i>
+        <h4>No inventory items found</h4>
+        <a href="{% url 'inventory_create' %}" class="btn btn-success"><i class="fas fa-plus"></i> Add First Item</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

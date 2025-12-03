@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Finance - FarmFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-dollar-sign"></i> Financial Management</h1>
+    <a href="{% url 'finance_create' %}" class="btn btn-success"><i class="fas fa-plus"></i> Add Transaction</a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card stat-card" style="border-left-color: #4caf50;">
+            <div class="card-body">
+                <h6 class="text-muted">Total Income</h6>
+                <h2 class="text-success">${{ total_income|floatformat:2 }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card" style="border-left-color: #f44336;">
+            <div class="card-body">
+                <h6 class="text-muted">Total Expenses</h6>
+                <h2 class="text-danger">${{ total_expenses|floatformat:2 }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card" style="border-left-color: {% if net >= 0 %}#2196f3{% else %}#f44336{% endif %};">
+            <div class="card-body">
+                <h6 class="text-muted">Net Balance</h6>
+                <h2 class="{% if net >= 0 %}text-primary{% else %}text-danger{% endif %}">${{ net|floatformat:2 }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <select name="type" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Types</option>
+                    <option value="income" {% if type_filter == 'income' %}selected{% endif %}>Income</option>
+                    <option value="expense" {% if type_filter == 'expense' %}selected{% endif %}>Expense</option>
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if transactions %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for trans in transactions %}
+                    <tr>
+                        <td>{{ trans.date|date:"M d, Y" }}</td>
+                        <td><span class="badge bg-{% if trans.type == 'income' %}success{% else %}danger{% endif %}">{{ trans.get_type_display }}</span></td>
+                        <td>{{ trans.get_category_display }}</td>
+                        <td>{{ trans.description }}</td>
+                        <td class="{% if trans.type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                            <strong>${{ trans.amount }}</strong>
+                        </td>
+                        <td>
+                            <a href="{% url 'finance_update' trans.pk %}" class="btn btn-sm btn-outline-success"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'finance_delete' trans.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-dollar-sign fa-4x text-muted mb-3"></i>
+        <h4>No transactions found</h4>
+        <a href="{% url 'finance_create' %}" class="btn btn-success"><i class="fas fa-plus"></i> Add Transaction</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

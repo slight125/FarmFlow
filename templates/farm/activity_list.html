@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Activities - FarmFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-clipboard-list"></i> Farm Activities</h1>
+    <a href="{% url 'activity_create' %}" class="btn btn-success"><i class="fas fa-plus"></i> Log Activity</a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <select name="type" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Activity Types</option>
+                    <option value="planting">Planting</option>
+                    <option value="irrigation">Irrigation</option>
+                    <option value="fertilization">Fertilization</option>
+                    <option value="harvesting">Harvesting</option>
+                    <option value="feeding">Animal Feeding</option>
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if activities %}
+<div class="card">
+    <div class="card-body">
+        <div class="list-group">
+            {% for activity in activities %}
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5>{{ activity.title }}</h5>
+                        <p class="mb-1">{{ activity.description }}</p>
+                        <small class="text-muted">
+                            <i class="fas fa-calendar"></i> {{ activity.date|date:"M d, Y H:i" }} •
+                            <span class="badge bg-info">{{ activity.get_activity_type_display }}</span>
+                        </small>
+                    </div>
+                    <div>
+                        <a href="{% url 'activity_update' activity.pk %}" class="btn btn-sm btn-outline-success"><i class="fas fa-edit"></i></a>
+                        <a href="{% url 'activity_delete' activity.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-clipboard-list fa-4x text-muted mb-3"></i>
+        <h4>No activities logged</h4>
+        <a href="{% url 'activity_create' %}" class="btn btn-success"><i class="fas fa-plus"></i> Log Activity</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

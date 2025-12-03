@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - FarmFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
+    <div>
+        <a href="{% url 'crop_create' %}" class="btn btn-success"><i class="fas fa-plus"></i> Add Crop</a>
+        <a href="{% url 'activity_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Log Activity</a>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card" style="border-left-color: #2e7d32;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Active Crops</h6>
+                        <h2 class="mb-0">{{ active_crops }}</h2>
+                        <small class="text-muted">of {{ total_crops }} total</small>
+                    </div>
+                    <div class="text-success">
+                        <i class="fas fa-leaf fa-3x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card stat-card" style="border-left-color: #ff9800;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Livestock</h6>
+                        <h2 class="mb-0">{{ total_livestock }}</h2>
+                        <small class="text-muted">animals</small>
+                    </div>
+                    <div style="color: #ff9800;">
+                        <i class="fas fa-horse fa-3x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card stat-card" style="border-left-color: #4caf50;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Monthly Income</h6>
+                        <h2 class="mb-0">${{ income|floatformat:2 }}</h2>
+                        <small class="text-success">+{{ expenses|floatformat:2 }} expenses</small>
+                    </div>
+                    <div class="text-success">
+                        <i class="fas fa-arrow-up fa-3x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card stat-card" style="border-left-color: {% if net_income >= 0 %}#4caf50{% else %}#f44336{% endif %};">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Net Income</h6>
+                        <h2 class="mb-0">${{ net_income|floatformat:2 }}</h2>
+                        <small class="{% if net_income >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            This month
+                        </small>
+                    </div>
+                    <div class="{% if net_income >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        <i class="fas fa-dollar-sign fa-3x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alerts -->
+{% if low_stock_items > 0 %}
+<div class="alert alert-warning">
+    <i class="fas fa-exclamation-triangle"></i>
+    <strong>Low Stock Alert!</strong> You have {{ low_stock_items }} item(s) that need reordering.
+    <a href="{% url 'inventory_list' %}?low_stock=true" class="alert-link">View Items</a>
+</div>
+{% endif %}
+
+<div class="row">
+    <!-- Upcoming Tasks -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-tasks"></i> Upcoming Tasks</h5>
+                    <a href="{% url 'task_list' %}" class="btn btn-sm btn-light">View All</a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if upcoming_tasks %}
+                    <div class="list-group list-group-flush">
+                        {% for task in upcoming_tasks %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ task.title }}</h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar"></i> {{ task.due_date }}
+                                    </small>
+                                    {% if task.is_overdue %}
+                                    <span class="badge bg-danger ms-2">Overdue</span>
+                                    {% endif %}
+                                </div>
+                                <span class="badge bg-{% if task.priority == 'urgent' %}danger{% elif task.priority == 'high' %}warning{% else %}secondary{% endif %}">
+                                    {{ task.get_priority_display }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No upcoming tasks</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-clipboard-list"></i> Recent Activities</h5>
+                    <a href="{% url 'activity_list' %}" class="btn btn-sm btn-light">View All</a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if recent_activities %}
+                    <div class="list-group list-group-flush">
+                        {% for activity in recent_activities %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="mb-1">{{ activity.title }}</h6>
+                                    <small class="text-muted">
+                                        {{ activity.get_activity_type_display }} • {{ activity.date|date:"M d, Y" }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No recent activities</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Harvests -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-seedling"></i> Upcoming Harvests</h5>
+            </div>
+            <div class="card-body">
+                {% if upcoming_harvests %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Crop</th>
+                                    <th>Variety</th>
+                                    <th>Expected Date</th>
+                                    <th>Days Left</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for crop in upcoming_harvests %}
+                                <tr>
+                                    <td>{{ crop.name }}</td>
+                                    <td>{{ crop.variety }}</td>
+                                    <td>{{ crop.expected_harvest_date }}</td>
+                                    <td><span class="badge bg-info">{{ crop.days_to_harvest }} days</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No upcoming harvests in the next 30 days</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-money-bill-wave"></i> Recent Transactions</h5>
+                    <a href="{% url 'finance_list' %}" class="btn btn-sm btn-light">View All</a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if recent_transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for trans in recent_transactions %}
+                                <tr>
+                                    <td>{{ trans.date|date:"M d" }}</td>
+                                    <td>{{ trans.description|truncatewords:4 }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if trans.type == 'income' %}success{% else %}danger{% endif %}">
+                                            {{ trans.get_type_display }}
+                                        </span>
+                                    </td>
+                                    <td class="{% if trans.type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                                        ${{ trans.amount }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No recent transactions</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
