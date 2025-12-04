@@ -1,0 +1,549 @@
+{% extends 'base.html' %}
+
+{% block title %}Manager Dashboard - FarmFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1><i class="fas fa-chart-line"></i> Farm Manager Dashboard</h1>
+        <p class="text-muted mb-0">Manage farm operations and team performance</p>
+    </div>
+    <div>
+        <a href="{% url 'task_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Assign Task</a>
+        <a href="{% url 'analytics' %}" class="btn btn-info"><i class="fas fa-chart-bar"></i> Full Analytics</a>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <a href="{% url 'crop_list' %}" class="text-decoration-none">
+            <div class="card stat-card" style="border-left: 4px solid #2e7d32; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Crops</h6>
+                            <h2 class="mb-0 text-dark">{{ total_crops }}</h2>
+                            <small class="text-success">{{ active_crops }} active</small>
+                        </div>
+                        <div class="text-success">
+                            <i class="fas fa-leaf fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a href="{% url 'livestock_list' %}" class="text-decoration-none">
+            <div class="card stat-card" style="border-left: 4px solid #ff9800; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Livestock</h6>
+                            <h2 class="mb-0 text-dark">{{ total_livestock }}</h2>
+                            <small class="text-success">{{ healthy_livestock }} healthy</small>
+                        </div>
+                        <div style="color: #ff9800;">
+                            <i class="fas fa-horse fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a href="{% url 'finance_list' %}" class="text-decoration-none">
+            <div class="card stat-card" style="border-left: 4px solid #4caf50; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Revenue</h6>
+                            <h2 class="mb-0 text-dark">KSh {{ income|floatformat:0 }}</h2>
+                            <small class="{% if net_income >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                Net: KSh {{ net_income|floatformat:0 }}
+                            </small>
+                        </div>
+                        <div class="text-success">
+                            <i class="fas fa-dollar-sign fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a href="{% url 'task_list' %}" class="text-decoration-none">
+            <div class="card stat-card" style="border-left: 4px solid #2196f3; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Team Tasks</h6>
+                            <h2 class="mb-0 text-dark">{{ total_tasks }}</h2>
+                            <small class="text-warning">{{ pending_tasks }} pending</small>
+                        </div>
+                        <div class="text-primary">
+                            <i class="fas fa-tasks fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<style>
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+</style>
+
+<!-- Alerts -->
+{% if overdue_tasks > 0 %}
+<div class="alert alert-danger alert-dismissible fade show">
+    <i class="fas fa-exclamation-triangle"></i>
+    <strong>Urgent:</strong> {{ overdue_tasks }} task(s) are overdue and need immediate attention.
+    <a href="{% url 'task_list' %}" class="alert-link">Review Tasks</a>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+{% if low_stock_items > 0 %}
+<div class="alert alert-warning alert-dismissible fade show">
+    <i class="fas fa-box"></i>
+    <strong>Inventory Alert:</strong> {{ low_stock_items }} item(s) need reordering.
+    <a href="{% url 'inventory_list' %}" class="alert-link">Check Inventory</a>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<!-- Main Content Tabs -->
+<ul class="nav nav-tabs mb-3" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="tab" href="#overview"><i class="fas fa-tachometer-alt"></i> Overview</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#team"><i class="fas fa-users"></i> Team Management</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#resources"><i class="fas fa-boxes"></i> Resources</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#performance"><i class="fas fa-chart-area"></i> Performance</a>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <!-- Overview Tab -->
+    <div class="tab-pane fade show active" id="overview">
+        <div class="row">
+            <!-- Upcoming Harvests -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-seedling"></i> Upcoming Harvests</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if upcoming_harvests %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Crop</th>
+                                            <th>Area</th>
+                                            <th>Expected Date</th>
+                                            <th>Days Left</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for crop in upcoming_harvests %}
+                                        <tr>
+                                            <td><strong>{{ crop.name }}</strong> - {{ crop.variety }}</td>
+                                            <td>{{ crop.area }} acres</td>
+                                            <td>{{ crop.expected_harvest_date|date:"M d" }}</td>
+                                            <td><span class="badge bg-warning">{{ crop.days_to_harvest }} days</span></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center py-4">No upcoming harvests in the next 30 days</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activities -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header" style="background-color: #9c27b0; color: white;">
+                        <h5 class="mb-0"><i class="fas fa-clipboard-list"></i> Recent Farm Activities</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_activities %}
+                            <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                                {% for activity in recent_activities %}
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="mb-1">{{ activity.title }}</h6>
+                                            <small class="text-muted">
+                                                <i class="fas fa-user"></i> {{ activity.user.username }} • 
+                                                <i class="fas fa-tag"></i> {{ activity.get_activity_type_display }}
+                                            </small>
+                                        </div>
+                                        <small class="text-muted">{{ activity.date|date:"M d" }}</small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center py-4">No recent activities</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Overview -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header" style="background-color: #00bcd4; color: white;">
+                        <h5 class="mb-0"><i class="fas fa-chart-line"></i> Financial Performance (This Month)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="text-center p-4" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius: 15px;">
+                                    <h6 class="text-muted mb-2"><i class="fas fa-arrow-up"></i> Total Income</h6>
+                                    <h2 class="text-success mb-1">KSh {{ income|floatformat:2 }}</h2>
+                                    <small class="text-muted">From sales and services</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="text-center p-4" style="background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-radius: 15px;">
+                                    <h6 class="text-muted mb-2"><i class="fas fa-arrow-down"></i> Total Expenses</h6>
+                                    <h2 class="text-danger mb-1">KSh {{ expenses|floatformat:2 }}</h2>
+                                    <small class="text-muted">Operating costs</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="text-center p-4" style="background: linear-gradient(135deg, {% if net_income >= 0 %}#e3f2fd 0%, #bbdefb{% else %}#fff3e0 0%, #ffe0b2{% endif %} 100%); border-radius: 15px;">
+                                    <h6 class="text-muted mb-2"><i class="fas fa-chart-pie"></i> Net Profit</h6>
+                                    <h2 class="{% if net_income >= 0 %}text-primary{% else %}text-warning{% endif %} mb-1">
+                                        KSh {{ net_income|floatformat:2 }}
+                                    </h2>
+                                    <small class="text-muted">
+                                        {% if net_income >= 0 %}
+                                            Profitable month
+                                        {% else %}
+                                            Loss this month
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Management Tab -->
+    <div class="tab-pane fade" id="team">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-clipboard-check"></i> Team Task Assignment</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if all_tasks %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Task</th>
+                                            <th>Assigned To</th>
+                                            <th>Priority</th>
+                                            <th>Due Date</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for task in all_tasks %}
+                                        <tr>
+                                            <td><strong>{{ task.title }}</strong></td>
+                                            <td>
+                                                {% if task.assigned_to %}
+                                                    <i class="fas fa-user"></i> {{ task.assigned_to.username }}
+                                                {% else %}
+                                                    <span class="text-muted">Unassigned</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{% if task.priority == 'urgent' %}danger{% elif task.priority == 'high' %}warning{% else %}secondary{% endif %}">
+                                                    {{ task.get_priority_display }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {{ task.due_date|date:"M d, Y" }}
+                                                {% if task.is_overdue %}
+                                                    <span class="badge bg-danger ms-1">Overdue</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{% if task.status == 'completed' %}success{% elif task.status == 'in_progress' %}info{% else %}secondary{% endif %}">
+                                                    {{ task.get_status_display }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center py-4">No tasks assigned yet</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card mb-3">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Task Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Pending</span>
+                                <strong>{{ pending_tasks }}</strong>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar bg-secondary" style="width: {% widthratio pending_tasks total_tasks 100 %}%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>In Progress</span>
+                                <strong>{{ inprogress_tasks }}</strong>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar bg-info" style="width: {% widthratio inprogress_tasks total_tasks 100 %}%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Completed</span>
+                                <strong>{{ completed_tasks }}</strong>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar bg-success" style="width: {% widthratio completed_tasks total_tasks 100 %}%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Overdue</span>
+                                <strong class="text-danger">{{ overdue_tasks }}</strong>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar bg-danger" style="width: {% widthratio overdue_tasks total_tasks 100 %}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-users"></i> Team Members</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if team_members %}
+                            <div class="list-group list-group-flush">
+                                {% for member in team_members %}
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-0">{{ member.username }}</h6>
+                                            <small class="text-muted">{{ member.profile.get_role_display }}</small>
+                                        </div>
+                                        <span class="badge bg-primary">{{ member.assigned_tasks.count }} tasks</span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">No team members</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resources Tab -->
+    <div class="tab-pane fade" id="resources">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-boxes"></i> Inventory Status</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if inventory_items %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th>Category</th>
+                                            <th>Quantity</th>
+                                            <th>Status</th>
+                                            <th>Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in inventory_items %}
+                                        <tr>
+                                            <td><strong>{{ item.name }}</strong></td>
+                                            <td>{{ item.get_category_display }}</td>
+                                            <td>{{ item.quantity }} {{ item.get_unit_display }}</td>
+                                            <td>
+                                                {% if item.needs_reorder %}
+                                                    <span class="badge bg-warning">Low Stock</span>
+                                                {% else %}
+                                                    <span class="badge bg-success">Adequate</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>KSh {{ item.total_value|floatformat:2 }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center py-4">No inventory items</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="fas fa-exclamation-circle"></i> Action Required</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="mb-3">Low Stock Items</h6>
+                        {% if low_stock_list %}
+                            <div class="list-group list-group-flush">
+                                {% for item in low_stock_list %}
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="mb-0">{{ item.name }}</h6>
+                                            <small class="text-muted">{{ item.quantity }} {{ item.get_unit_display }} left</small>
+                                        </div>
+                                        <span class="badge bg-danger">Reorder</span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">All items adequately stocked</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Tab -->
+    <div class="tab-pane fade" id="performance">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Crop Performance</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3">Comparing expected vs actual yields</p>
+                        {% if harvested_crops %}
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Crop</th>
+                                            <th>Expected (kg)</th>
+                                            <th>Actual (kg)</th>
+                                            <th>Performance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for crop in harvested_crops %}
+                                        <tr>
+                                            <td>{{ crop.name }}</td>
+                                            <td>{{ crop.expected_yield|default:"N/A" }}</td>
+                                            <td>{{ crop.actual_yield|default:"N/A" }}</td>
+                                            <td>
+                                                {% if crop.actual_yield and crop.expected_yield %}
+                                                    {% widthratio crop.actual_yield crop.expected_yield 100 as performance %}
+                                                    <span class="badge bg-{% if performance >= 90 %}success{% elif performance >= 70 %}warning{% else %}danger{% endif %}">
+                                                        {{ performance }}%
+                                                    </span>
+                                                {% else %}
+                                                    —
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center py-4">No harvested crops to analyze</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header" style="background-color: #00bcd4; color: white;">
+                        <h5 class="mb-0"><i class="fas fa-money-bill-trend-up"></i> Financial Trends</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3">Monthly comparison</p>
+                        <div class="row text-center">
+                            <div class="col-6 mb-3">
+                                <div class="p-3" style="background: #e8f5e9; border-radius: 10px;">
+                                    <small class="text-muted d-block">This Month</small>
+                                    <h4 class="text-success mb-0">KSh {{ income|floatformat:0 }}</h4>
+                                </div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <div class="p-3" style="background: #e3f2fd; border-radius: 10px;">
+                                    <small class="text-muted d-block">Last Month</small>
+                                    <h4 class="text-primary mb-0">KSh {{ last_month_income|floatformat:0 }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'analytics' %}" class="btn btn-outline-info">
+                                <i class="fas fa-chart-line"></i> View Full Analytics
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

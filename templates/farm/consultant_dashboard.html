@@ -1,0 +1,590 @@
+{% extends 'base.html' %}
+
+{% block title %}Consultant Dashboard - FarmFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1><i class="fas fa-user-tie"></i> Agricultural Consultant Dashboard</h1>
+        <p class="text-muted mb-0">Farm Analysis & Advisory</p>
+    </div>
+    <div>
+        <a href="{% url 'analytics' %}" class="btn btn-primary"><i class="fas fa-chart-line"></i> Full Analytics</a>
+        <a href="{% url 'activity_create' %}" class="btn btn-success"><i class="fas fa-plus"></i> Add Observation</a>
+    </div>
+</div>
+
+<!-- Key Metrics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <a href="{% url 'crop_list' %}" class="text-decoration-none">
+            <div class="card stat-card" style="border-left: 4px solid #2e7d32; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Crops</h6>
+                            <h2 class="mb-0 text-dark">{{ total_crops }}</h2>
+                            <small class="text-success">{{ active_crops }} active</small>
+                        </div>
+                        <div class="text-success">
+                            <i class="fas fa-seedling fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a href="{% url 'livestock_list' %}" class="text-decoration-none">
+            <div class="card stat-card" style="border-left: 4px solid #ff9800; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Livestock Health</h6>
+                            <h2 class="mb-0 text-dark">{{ healthy_livestock }}</h2>
+                            <small class="{% if sick_livestock > 0 %}text-danger{% else %}text-success{% endif %}">
+                                {{ sick_livestock }} need attention
+                            </small>
+                        </div>
+                        <div style="color: #ff9800;">
+                            <i class="fas fa-stethoscope fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a href="{% url 'analytics' %}" class="text-decoration-none">
+            <div class="card stat-card" style="border-left: 4px solid #2196f3; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Avg Crop Performance</h6>
+                            <h2 class="mb-0 text-dark">{{ avg_crop_performance }}%</h2>
+                            <small class="{% if avg_crop_performance >= 80 %}text-success{% elif avg_crop_performance >= 60 %}text-warning{% else %}text-danger{% endif %}">
+                                Yield efficiency
+                            </small>
+                        </div>
+                        <div class="text-primary">
+                            <i class="fas fa-percentage fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a href="{% url 'finance_list' %}" class="text-decoration-none">
+            <div class="card stat-card" style="border-left: 4px solid #4caf50; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Farm Profitability</h6>
+                            <h2 class="mb-0 text-dark">{{ profitability_ratio|floatformat:1 }}%</h2>
+                            <small class="{% if net_income >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                KSh {{ net_income|floatformat:0 }}
+                            </small>
+                        </div>
+                        <div class="text-success">
+                            <i class="fas fa-chart-pie fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<style>
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+</style>
+
+<!-- Alerts & Recommendations -->
+{% if sick_livestock > 0 %}
+<div class="alert alert-danger alert-dismissible fade show">
+    <i class="fas fa-heartbeat"></i>
+    <strong>Health Alert:</strong> {{ sick_livestock }} livestock need immediate veterinary attention.
+    <a href="{% url 'livestock_list' %}" class="alert-link">View Details</a>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+{% if low_performing_crops > 0 %}
+<div class="alert alert-warning alert-dismissible fade show">
+    <i class="fas fa-exclamation-triangle"></i>
+    <strong>Performance Issue:</strong> {{ low_performing_crops }} crop(s) showing below-expected yields.
+    <a href="{% url 'crop_list' %}" class="alert-link">Analyze Crops</a>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<!-- Main Dashboard Tabs -->
+<ul class="nav nav-tabs mb-3" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="tab" href="#crop-analysis"><i class="fas fa-leaf"></i> Crop Analysis</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#livestock-health"><i class="fas fa-horse"></i> Livestock Health</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#financial"><i class="fas fa-money-bill-wave"></i> Financial Analysis</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#recommendations"><i class="fas fa-lightbulb"></i> Recommendations</a>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <!-- Crop Analysis Tab -->
+    <div class="tab-pane fade show active" id="crop-analysis">
+        <div class="row">
+            <div class="col-md-8 mb-4">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Crop Performance Analysis</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if crops_with_yield %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Crop</th>
+                                            <th>Variety</th>
+                                            <th>Area (acres)</th>
+                                            <th>Expected Yield</th>
+                                            <th>Actual Yield</th>
+                                            <th>Performance</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for crop in crops_with_yield %}
+                                        <tr>
+                                            <td><strong>{{ crop.name }}</strong></td>
+                                            <td>{{ crop.variety }}</td>
+                                            <td>{{ crop.area }}</td>
+                                            <td>{{ crop.expected_yield|default:"—" }} kg</td>
+                                            <td>{{ crop.actual_yield|default:"—" }} kg</td>
+                                            <td>
+                                                {% if crop.actual_yield and crop.expected_yield %}
+                                                    {% widthratio crop.actual_yield crop.expected_yield 100 as performance %}
+                                                    <span class="badge bg-{% if performance >= 90 %}success{% elif performance >= 70 %}warning{% else %}danger{% endif %}">
+                                                        {{ performance }}%
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">N/A</span>
+                                                {% endif %}
+                                            </td>
+                                            <td><span class="badge bg-info">{{ crop.get_status_display }}</span></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center py-4">No crop data available for analysis</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="card mb-3">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> Upcoming Harvests</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if upcoming_harvests %}
+                            <div class="list-group list-group-flush">
+                                {% for crop in upcoming_harvests %}
+                                <div class="list-group-item px-0">
+                                    <h6 class="mb-1">{{ crop.name }}</h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar"></i> {{ crop.expected_harvest_date|date:"M d, Y" }}<br>
+                                        <i class="fas fa-clock"></i> {{ crop.days_to_harvest }} days remaining
+                                    </small>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">No harvests scheduled soon</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="fas fa-clipboard-check"></i> Crop Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>Planted</span>
+                                <strong class="text-success">{{ planted_crops }}</strong>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>Growing</span>
+                                <strong class="text-info">{{ growing_crops }}</strong>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>Ready to Harvest</span>
+                                <strong class="text-warning">{{ ready_crops }}</strong>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="d-flex justify-content-between">
+                                <span>Harvested</span>
+                                <strong class="text-secondary">{{ harvested_crops }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Livestock Health Tab -->
+    <div class="tab-pane fade" id="livestock-health">
+        <div class="row">
+            <div class="col-md-8 mb-4">
+                <div class="card">
+                    <div class="card-header" style="background-color: #ff9800; color: white;">
+                        <h5 class="mb-0"><i class="fas fa-heartbeat"></i> Livestock Health Status</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if all_livestock %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Type</th>
+                                            <th>Breed</th>
+                                            <th>Tag Number</th>
+                                            <th>Age</th>
+                                            <th>Weight</th>
+                                            <th>Health Status</th>
+                                            <th>Notes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for animal in all_livestock %}
+                                        <tr>
+                                            <td><strong>{{ animal.get_type_display }}</strong></td>
+                                            <td>{{ animal.breed }}</td>
+                                            <td>{{ animal.tag_number }}</td>
+                                            <td>
+                                                {% if animal.date_of_birth %}
+                                                    {{ animal.date_of_birth|timesince }} old
+                                                {% else %}
+                                                    —
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ animal.weight|default:"—" }} kg</td>
+                                            <td>
+                                                <span class="badge bg-{% if animal.status == 'healthy' %}success{% elif animal.status == 'sick' %}danger{% elif animal.status == 'under_treatment' %}warning{% else %}info{% endif %}">
+                                                    {{ animal.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% if animal.notes %}
+                                                    <button class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="{{ animal.notes }}">
+                                                        <i class="fas fa-info-circle"></i>
+                                                    </button>
+                                                {% else %}
+                                                    —
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center py-4">No livestock data available</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="card mb-3">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0"><i class="fas fa-exclamation-circle"></i> Health Alerts</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if sick_or_treatment_livestock %}
+                            <div class="list-group list-group-flush">
+                                {% for animal in sick_or_treatment_livestock %}
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-0">{{ animal.tag_number }}</h6>
+                                            <small class="text-muted">{{ animal.get_type_display }} - {{ animal.breed }}</small>
+                                        </div>
+                                        <span class="badge bg-{% if animal.status == 'sick' %}danger{% else %}warning{% endif %}">
+                                            {{ animal.get_status_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">All livestock healthy! 🎉</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Livestock Distribution</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if livestock_by_type %}
+                            {% for item in livestock_by_type %}
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <span>{{ item.type|title }}</span>
+                                    <strong>{{ item.count }}</strong>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted mb-0">No livestock data</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Analysis Tab -->
+    <div class="tab-pane fade" id="financial">
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header" style="background-color: #00bcd4; color: white;">
+                        <h5 class="mb-0"><i class="fas fa-chart-line"></i> Financial Performance Overview</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="text-center p-4" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius: 15px;">
+                                    <h6 class="text-muted mb-2"><i class="fas fa-arrow-up"></i> Total Revenue</h6>
+                                    <h2 class="text-success mb-1">KSh {{ income|floatformat:2 }}</h2>
+                                    <small class="text-muted">This month</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-4" style="background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-radius: 15px;">
+                                    <h6 class="text-muted mb-2"><i class="fas fa-arrow-down"></i> Total Expenses</h6>
+                                    <h2 class="text-danger mb-1">KSh {{ expenses|floatformat:2 }}</h2>
+                                    <small class="text-muted">This month</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-4" style="background: linear-gradient(135deg, {% if net_income >= 0 %}#e3f2fd 0%, #bbdefb{% else %}#fff3e0 0%, #ffe0b2{% endif %} 100%); border-radius: 15px;">
+                                    <h6 class="text-muted mb-2"><i class="fas fa-wallet"></i> Net Profit</h6>
+                                    <h2 class="{% if net_income >= 0 %}text-primary{% else %}text-warning{% endif %} mb-1">
+                                        KSh {{ net_income|floatformat:2 }}
+                                    </h2>
+                                    <small class="text-muted">
+                                        Profit Margin: {{ profitability_ratio|floatformat:1 }}%
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="mb-3">Expense Breakdown by Category</h6>
+                        {% if expense_by_category %}
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Category</th>
+                                            <th>Amount (KSh)</th>
+                                            <th>% of Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for expense in expense_by_category %}
+                                        <tr>
+                                            <td>{{ expense.category|title }}</td>
+                                            <td>{{ expense.total|floatformat:2 }}</td>
+                                            <td>
+                                                {% if expenses > 0 %}
+                                                    {% widthratio expense.total expenses 100 as percentage %}
+                                                    <div class="progress" style="height: 20px;">
+                                                        <div class="progress-bar" style="width: {{ percentage }}%">{{ percentage }}%</div>
+                                                    </div>
+                                                {% else %}
+                                                    0%
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center">No expense data available</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommendations Tab -->
+    <div class="tab-pane fade" id="recommendations">
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header" style="background-color: #9c27b0; color: white;">
+                        <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Agricultural Recommendations</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-success">
+                                    <div class="card-header bg-success text-white">
+                                        <h6 class="mb-0"><i class="fas fa-seedling"></i> Crop Management</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-unstyled mb-0">
+                                            {% if low_performing_crops > 0 %}
+                                            <li class="mb-2">
+                                                <i class="fas fa-exclamation-triangle text-warning"></i> 
+                                                <strong>Action Required:</strong> {{ low_performing_crops }} crop(s) showing below-target yields. Consider soil testing and nutrient supplementation.
+                                            </li>
+                                            {% endif %}
+                                            {% if upcoming_harvests %}
+                                            <li class="mb-2">
+                                                <i class="fas fa-calendar-check text-success"></i> 
+                                                <strong>Harvest Planning:</strong> Prepare for {{ upcoming_harvests|length }} harvest(s) in the next 30 days.
+                                            </li>
+                                            {% endif %}
+                                            <li class="mb-2">
+                                                <i class="fas fa-leaf text-info"></i> 
+                                                <strong>Crop Rotation:</strong> Consider rotating crops to improve soil health and reduce pest pressure.
+                                            </li>
+                                            <li class="mb-0">
+                                                <i class="fas fa-water text-primary"></i> 
+                                                <strong>Irrigation:</strong> Monitor soil moisture levels regularly to optimize water usage.
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-warning">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0"><i class="fas fa-horse"></i> Livestock Care</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-unstyled mb-0">
+                                            {% if sick_livestock > 0 %}
+                                            <li class="mb-2">
+                                                <i class="fas fa-heartbeat text-danger"></i> 
+                                                <strong>Urgent:</strong> {{ sick_livestock }} animal(s) require immediate veterinary attention.
+                                            </li>
+                                            {% endif %}
+                                            <li class="mb-2">
+                                                <i class="fas fa-syringe text-info"></i> 
+                                                <strong>Vaccination:</strong> Ensure all livestock are up-to-date with vaccination schedules.
+                                            </li>
+                                            <li class="mb-2">
+                                                <i class="fas fa-utensils text-success"></i> 
+                                                <strong>Nutrition:</strong> Review feed quality and supplements for optimal health and productivity.
+                                            </li>
+                                            <li class="mb-0">
+                                                <i class="fas fa-home text-primary"></i> 
+                                                <strong>Housing:</strong> Maintain clean, well-ventilated housing to prevent disease spread.
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-info">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0"><i class="fas fa-chart-line"></i> Financial Optimization</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-unstyled mb-0">
+                                            {% if net_income < 0 %}
+                                            <li class="mb-2">
+                                                <i class="fas fa-chart-line text-danger"></i> 
+                                                <strong>Profitability:</strong> Current operations showing losses. Review cost structure and pricing strategies.
+                                            </li>
+                                            {% endif %}
+                                            <li class="mb-2">
+                                                <i class="fas fa-piggy-bank text-success"></i> 
+                                                <strong>Cost Reduction:</strong> Identify opportunities to reduce input costs without compromising quality.
+                                            </li>
+                                            <li class="mb-2">
+                                                <i class="fas fa-handshake text-warning"></i> 
+                                                <strong>Market Access:</strong> Explore direct-to-consumer sales channels for better margins.
+                                            </li>
+                                            <li class="mb-0">
+                                                <i class="fas fa-file-invoice-dollar text-primary"></i> 
+                                                <strong>Record Keeping:</strong> Maintain detailed financial records for better decision-making.
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0"><i class="fas fa-tools"></i> Best Practices</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-unstyled mb-0">
+                                            <li class="mb-2">
+                                                <i class="fas fa-clipboard-check text-success"></i> 
+                                                <strong>Planning:</strong> Develop comprehensive seasonal plans for planting and harvest schedules.
+                                            </li>
+                                            <li class="mb-2">
+                                                <i class="fas fa-bug text-warning"></i> 
+                                                <strong>Pest Management:</strong> Implement integrated pest management strategies to reduce chemical usage.
+                                            </li>
+                                            <li class="mb-2">
+                                                <i class="fas fa-recycle text-info"></i> 
+                                                <strong>Sustainability:</strong> Adopt sustainable farming practices for long-term farm health.
+                                            </li>
+                                            <li class="mb-0">
+                                                <i class="fas fa-graduation-cap text-primary"></i> 
+                                                <strong>Education:</strong> Stay updated with latest agricultural research and techniques.
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Note:</strong> These recommendations are based on current farm data. For detailed, personalized advice, consider scheduling an on-site consultation.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

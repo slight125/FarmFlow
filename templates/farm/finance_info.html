@@ -1,0 +1,94 @@
+{% extends 'farm/base_info.html' %}
+
+{% block title %}Financial Management - FarmFlow{% endblock %}
+{% block nav_finance %}active{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="section-title">Financial Management</h1>
+                <p class="section-subtitle">Track income, expenses, and profitability with powerful financial tools</p>
+                <a href="{% url 'register' %}" class="btn btn-neomorph btn-neomorph-primary btn-lg">Manage Your Finances</a>
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-dollar-sign" style="font-size: 15rem; color: var(--primary-green); opacity: 0.2;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">Comprehensive Financial Tracking</h2>
+            <p class="lead text-muted">Make informed decisions with clear financial insights</p>
+        </div>
+        <div class="row">
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Income & Expense Tracking</h3>
+                    <p class="text-muted">Record all transactions, categorize spending, and monitor cash flow to understand your farm's financial health.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Profitability Analysis</h3>
+                    <p class="text-muted">Calculate profit margins, identify your most profitable activities, and optimize resource allocation.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Budget Planning</h3>
+                    <p class="text-muted">Create budgets, set financial goals, and track performance against targets throughout the season.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Tax Preparation</h3>
+                    <p class="text-muted">Organize financial records, categorize deductions, and simplify tax preparation with detailed reports.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-cash-register"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Sales Tracking</h3>
+                    <p class="text-muted">Monitor crop and livestock sales, track payment status, and manage customer accounts efficiently.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Financial Reports</h3>
+                    <p class="text-muted">Generate profit & loss statements, cash flow reports, and expense summaries at any time.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section">
+    <div class="container">
+        <h2 class="display-4 fw-bold mb-4">Make Better Financial Decisions</h2>
+        <p class="lead mb-4">Understand your farm's financial performance and plan for growth</p>
+        <a href="{% url 'register' %}" class="btn btn-neomorph btn-neomorph-primary btn-lg">Start Tracking Finances</a>
+    </div>
+</section>
+{% endblock %}

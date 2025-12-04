@@ -1,0 +1,94 @@
+{% extends 'farm/base_info.html' %}
+
+{% block title %}Livestock Management - FarmFlow{% endblock %}
+{% block nav_livestock %}active{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="section-title">Livestock Management</h1>
+                <p class="section-subtitle">Monitor health, track breeding, and manage your entire herd with confidence</p>
+                <a href="{% url 'register' %}" class="btn btn-neomorph btn-neomorph-primary btn-lg">Start Tracking Livestock</a>
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-horse" style="font-size: 15rem; color: var(--primary-green); opacity: 0.2;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">Complete Livestock Tracking</h2>
+            <p class="lead text-muted">Manage your animals with professional-grade tools</p>
+        </div>
+        <div class="row">
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Health Monitoring</h3>
+                    <p class="text-muted">Track vaccinations, treatments, and health checkups to keep your livestock in optimal condition.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-dna"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Breeding Records</h3>
+                    <p class="text-muted">Manage breeding cycles, track lineage, and optimize your breeding program for better outcomes.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-weight"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Weight Tracking</h3>
+                    <p class="text-muted">Monitor growth rates, track weight gain, and identify animals ready for market.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Feed Management</h3>
+                    <p class="text-muted">Track feed consumption, calculate costs, and optimize nutrition for maximum productivity.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-egg"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Production Tracking</h3>
+                    <p class="text-muted">Record milk, eggs, wool, and other products to monitor productivity and identify top performers.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-medical"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Medical Records</h3>
+                    <p class="text-muted">Keep detailed medical histories, track medications, and maintain compliance with regulations.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section">
+    <div class="container">
+        <h2 class="display-4 fw-bold mb-4">Transform Your Livestock Management</h2>
+        <p class="lead mb-4">Professional tools for cattle, poultry, sheep, goats, and more</p>
+        <a href="{% url 'register' %}" class="btn btn-neomorph btn-neomorph-primary btn-lg">Start Your Free Trial</a>
+    </div>
+</section>
+{% endblock %}

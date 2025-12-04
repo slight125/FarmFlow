@@ -18,6 +18,20 @@ class UserRegisterForm(UserCreationForm):
 
 
 class UserProfileForm(forms.ModelForm):
+    """Form for users to edit their own profile (role excluded)"""
+    class Meta:
+        model = UserProfile
+        fields = ['phone', 'farm_name', 'location', 'farm_size', 'avatar']
+        widgets = {
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'farm_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'location': forms.TextInput(attrs={'class': 'form-control'}),
+            'farm_size': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+
+
+class AdminUserProfileForm(forms.ModelForm):
+    """Form for admins to edit user profiles including role"""
     class Meta:
         model = UserProfile
         fields = ['role', 'phone', 'farm_name', 'location', 'farm_size', 'avatar']

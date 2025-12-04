@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
@@ -16,9 +16,58 @@ from .forms import (
 )
 
 
+# Custom decorator for superuser-only access
+def superuser_required(view_func):
+    """Decorator that requires user to be a superuser"""
+    decorated_view = user_passes_test(
+        lambda u: u.is_superuser,
+        login_url='/login/'
+    )(view_func)
+    return login_required(decorated_view)
+
+
 def homepage(request):
     """Homepage view"""
     return render(request, 'farm/homepage.html')
+
+
+def features_page(request):
+    """Features page view"""
+    return render(request, 'farm/features_page.html')
+
+
+def about_page(request):
+    """About page view"""
+    return render(request, 'farm/about_page.html')
+
+
+def pricing_page(request):
+    """Pricing page view"""
+    return render(request, 'farm/pricing_page.html')
+
+
+def contact_page(request):
+    """Contact page view"""
+    return render(request, 'farm/contact_page.html')
+
+
+def billing(request):
+    """Billing page view"""
+    return render(request, 'farm/billing.html')
+
+
+def process_payment(request):
+    """Process payment (placeholder for payment gateway integration)"""
+    if request.method == 'POST':
+        # Here you would integrate with M-Pesa, Airtel Money, or card payment gateway
+        plan = request.POST.get('plan')
+        cycle = request.POST.get('cycle')
+        payment_method = request.POST.get('payment_method')
+        
+        messages.success(request, 'Payment processing initiated. You will receive a confirmation shortly.')
+        return redirect('register')
+    
+    return redirect('billing')
 
 
 def register(request):
@@ -39,15 +88,22 @@ def register(request):
 def user_login(request):
     """User login view"""
     if request.method == 'POST':
-        username = request.POST.get('username')
+        email = request.POST.get('email')
         password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
+        # Try to get user by email
+        try:
+            from django.contrib.auth.models import User
+            user_obj = User.objects.get(email=email)
+            user = authenticate(request, username=user_obj.username, password=password)
+        except User.DoesNotExist:
+            user = None
+        
         if user is not None:
             login(request, user)
             messages.success(request, f'Welcome back, {user.first_name or user.username}!')
             return redirect('dashboard')
         else:
-            messages.error(request, 'Invalid username or password.')
+            messages.error(request, 'Invalid email or password.')
     return render(request, 'farm/login.html')
 
 
@@ -60,45 +116,74 @@ def user_logout(request):
 
 @login_required
 def dashboard(request):
-    """Main dashboard view with statistics and overview"""
+    """Role-based dashboard router"""
     user = request.user
+    profile, created = UserProfile.objects.get_or_create(user=user)
     
-    # Get statistics
+    # Route to appropriate dashboard based on role
+    if profile.role == 'farmer':
+        return farmer_dashboard(request)
+    elif profile.role == 'manager':
+        return manager_dashboard(request)
+    elif profile.role == 'worker':
+        return worker_dashboard(request)
+    elif profile.role == 'consultant':
+        return consultant_dashboard(request)
+    else:
+        # Default to farmer dashboard
+        return farmer_dashboard(request)
+
+
+@login_required
+def farmer_dashboard(request):
+    """Farmer-specific dashboard"""
+    user = request.user
+    current_month = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    
+    # Statistics
     total_crops = Crop.objects.filter(user=user).count()
     active_crops = Crop.objects.filter(user=user, status__in=['planted', 'growing']).count()
     total_livestock = Livestock.objects.filter(user=user).exclude(status__in=['sold', 'deceased']).count()
     
-    # Financial statistics
-    current_month = timezone.now().replace(day=1)
+    # Financial statistics - Get all income and expenses (not just this month for total view)
     income = FinancialTransaction.objects.filter(
-        user=user, type='income', date__gte=current_month
+        user=user, type='income'
     ).aggregate(total=Sum('amount'))['total'] or 0
     
     expenses = FinancialTransaction.objects.filter(
+        user=user, type='expense'
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    # This month's income and expenses
+    income_this_month = FinancialTransaction.objects.filter(
+        user=user, type='income', date__gte=current_month
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    expenses_this_month = FinancialTransaction.objects.filter(
         user=user, type='expense', date__gte=current_month
     ).aggregate(total=Sum('amount'))['total'] or 0
     
     net_income = income - expenses
+    net_income_this_month = income_this_month - expenses_this_month
     
-    # Inventory alerts
-    low_stock_items = InventoryItem.objects.filter(user=user, quantity__lte=models.F('reorder_level')).count()
-    
-    # Upcoming tasks
+    # Tasks
+    pending_tasks = Task.objects.filter(user=user, status__in=['pending', 'in_progress']).count()
+    overdue_tasks = Task.objects.filter(
+        user=user, status__in=['pending', 'in_progress'],
+        due_date__lt=timezone.now().date()
+    ).count()
     upcoming_tasks = Task.objects.filter(
         user=user, status__in=['pending', 'in_progress']
     ).order_by('due_date')[:5]
     
-    # Recent activities
-    recent_activities = Activity.objects.filter(user=user).order_by('-date')[:10]
+    # Inventory
+    low_stock_items = InventoryItem.objects.filter(user=user, quantity__lte=models.F('reorder_level')).count()
     
-    # Crops near harvest
-    upcoming_harvests = Crop.objects.filter(
-        user=user, status__in=['planted', 'growing'],
-        expected_harvest_date__lte=timezone.now().date() + timedelta(days=30)
-    ).order_by('expected_harvest_date')[:5]
-    
-    # Recent transactions
-    recent_transactions = FinancialTransaction.objects.filter(user=user).order_by('-date')[:5]
+    # Recent data
+    recent_crops = Crop.objects.filter(user=user, status__in=['planted', 'growing']).order_by('-planting_date')[:5]
+    recent_livestock = Livestock.objects.filter(user=user).exclude(status__in=['sold', 'deceased']).order_by('-date_acquired')[:5]
+    recent_activities = Activity.objects.filter(user=user).order_by('-date')[:5]
+    recent_transactions = FinancialTransaction.objects.filter(user=user).order_by('-date')[:10]
     
     context = {
         'total_crops': total_crops,
@@ -107,20 +192,268 @@ def dashboard(request):
         'income': income,
         'expenses': expenses,
         'net_income': net_income,
+        'income_this_month': income_this_month,
+        'expenses_this_month': expenses_this_month,
+        'net_income_this_month': net_income_this_month,
+        'pending_tasks': pending_tasks,
+        'overdue_tasks': overdue_tasks,
         'low_stock_items': low_stock_items,
         'upcoming_tasks': upcoming_tasks,
+        'recent_crops': recent_crops,
+        'recent_livestock': recent_livestock,
         'recent_activities': recent_activities,
-        'upcoming_harvests': upcoming_harvests,
         'recent_transactions': recent_transactions,
     }
     
-    return render(request, 'farm/dashboard.html', context)
+    return render(request, 'farm/farmer_dashboard.html', context)
+
+
+@login_required
+def manager_dashboard(request):
+    """Manager-specific dashboard with team and resource management"""
+    from django.contrib.auth.models import User
+    current_month = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    last_month = (current_month - timedelta(days=1)).replace(day=1)
+    
+    # Overall statistics (all users)
+    total_crops = Crop.objects.count()
+    active_crops = Crop.objects.filter(status__in=['planted', 'growing']).count()
+    total_livestock = Livestock.objects.exclude(status__in=['sold', 'deceased']).count()
+    healthy_livestock = Livestock.objects.filter(status='healthy').count()
+    
+    # Financial statistics - Total (all time)
+    income = FinancialTransaction.objects.filter(
+        type='income'
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    expenses = FinancialTransaction.objects.filter(
+        type='expense'
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    net_income = income - expenses
+    
+    # This month's income for comparison
+    income_this_month = FinancialTransaction.objects.filter(
+        type='income', date__gte=current_month
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    last_month_income = FinancialTransaction.objects.filter(
+        type='income', date__gte=last_month, date__lt=current_month
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    # Tasks
+    total_tasks = Task.objects.count()
+    pending_tasks = Task.objects.filter(status__in=['pending']).count()
+    inprogress_tasks = Task.objects.filter(status='in_progress').count()
+    completed_tasks = Task.objects.filter(status='completed').count()
+    overdue_tasks = Task.objects.filter(
+        status__in=['pending', 'in_progress'],
+        due_date__lt=timezone.now().date()
+    ).count()
+    all_tasks = Task.objects.select_related('assigned_to', 'user').order_by('-due_date')[:20]
+    
+    # Inventory
+    low_stock_items = InventoryItem.objects.filter(quantity__lte=models.F('reorder_level')).count()
+    inventory_items = InventoryItem.objects.all()[:20]
+    low_stock_list = InventoryItem.objects.filter(quantity__lte=models.F('reorder_level'))[:10]
+    
+    # Team
+    team_members = User.objects.filter(is_active=True).select_related('profile')
+    
+    # Recent data
+    upcoming_harvests = Crop.objects.filter(
+        status__in=['planted', 'growing'],
+        expected_harvest_date__lte=timezone.now().date() + timedelta(days=30)
+    ).order_by('expected_harvest_date')[:10]
+    recent_activities = Activity.objects.select_related('user').order_by('-date')[:15]
+    
+    # Performance data
+    harvested_crops = Crop.objects.filter(status__in=['harvested', 'sold']).exclude(
+        actual_yield__isnull=True, expected_yield__isnull=True
+    )[:10]
+    
+    context = {
+        'total_crops': total_crops,
+        'active_crops': active_crops,
+        'total_livestock': total_livestock,
+        'healthy_livestock': healthy_livestock,
+        'income': income,
+        'expenses': expenses,
+        'net_income': net_income,
+        'last_month_income': last_month_income,
+        'total_tasks': total_tasks,
+        'pending_tasks': pending_tasks,
+        'inprogress_tasks': inprogress_tasks,
+        'completed_tasks': completed_tasks,
+        'overdue_tasks': overdue_tasks,
+        'all_tasks': all_tasks,
+        'low_stock_items': low_stock_items,
+        'inventory_items': inventory_items,
+        'low_stock_list': low_stock_list,
+        'team_members': team_members,
+        'upcoming_harvests': upcoming_harvests,
+        'recent_activities': recent_activities,
+        'harvested_crops': harvested_crops,
+    }
+    
+    return render(request, 'farm/manager_dashboard.html', context)
+
+
+@login_required
+def worker_dashboard(request):
+    """Worker-specific dashboard focused on assigned tasks"""
+    user = request.user
+    current_week = timezone.now().date() - timedelta(days=timezone.now().weekday())
+    current_month = timezone.now().replace(day=1)
+    today = timezone.now().date()
+    
+    # Task statistics
+    total_my_tasks = Task.objects.filter(assigned_to=user).count()
+    today_tasks = Task.objects.filter(assigned_to=user, due_date=today).count()
+    pending_tasks = Task.objects.filter(assigned_to=user, status='pending').count()
+    completed_tasks = Task.objects.filter(assigned_to=user, status='completed', completed_date__gte=current_week).count()
+    overdue_tasks = Task.objects.filter(
+        assigned_to=user, status__in=['pending', 'in_progress'],
+        due_date__lt=today
+    ).count()
+    
+    # Task priority breakdown
+    urgent_tasks = Task.objects.filter(assigned_to=user, status__in=['pending', 'in_progress'], priority='urgent').count()
+    high_tasks = Task.objects.filter(assigned_to=user, status__in=['pending', 'in_progress'], priority='high').count()
+    medium_tasks = Task.objects.filter(assigned_to=user, status__in=['pending', 'in_progress'], priority='medium').count()
+    low_tasks = Task.objects.filter(assigned_to=user, status__in=['pending', 'in_progress'], priority='low').count()
+    
+    # Activities
+    my_activities = Activity.objects.filter(user=user, date__gte=current_month).count()
+    recent_activities = Activity.objects.filter(user=user).order_by('-date')[:10]
+    
+    # Assigned tasks
+    assigned_tasks = Task.objects.filter(assigned_to=user).exclude(status='completed').order_by('-priority', 'due_date')
+    
+    context = {
+        'total_my_tasks': total_my_tasks,
+        'today_tasks': today_tasks,
+        'pending_tasks': pending_tasks,
+        'completed_tasks': completed_tasks,
+        'overdue_tasks': overdue_tasks,
+        'urgent_tasks': urgent_tasks,
+        'high_tasks': high_tasks,
+        'medium_tasks': medium_tasks,
+        'low_tasks': low_tasks,
+        'my_activities': my_activities,
+        'recent_activities': recent_activities,
+        'assigned_tasks': assigned_tasks,
+    }
+    
+    return render(request, 'farm/worker_dashboard.html', context)
+
+
+@login_required
+def consultant_dashboard(request):
+    """Consultant-specific dashboard with analytics and recommendations"""
+    current_month = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    last_month = (current_month - timedelta(days=1)).replace(day=1)
+    
+    # Overall statistics
+    total_crops = Crop.objects.count()
+    active_crops = Crop.objects.filter(status__in=['planted', 'growing']).count()
+    total_livestock = Livestock.objects.exclude(status__in=['sold', 'deceased']).count()
+    healthy_livestock = Livestock.objects.filter(status='healthy').count()
+    sick_livestock = Livestock.objects.filter(status__in=['sick', 'under_treatment']).count()
+    
+    # Financial statistics - Total (all time)
+    income = FinancialTransaction.objects.filter(
+        type='income'
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    expenses = FinancialTransaction.objects.filter(
+        type='expense'
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    net_income = income - expenses
+    profitability_ratio = (net_income / income * 100) if income > 0 else 0
+    
+    # Crop performance
+    harvested_crops = Crop.objects.filter(status__in=['harvested', 'sold'])
+    crops_with_yield = harvested_crops.exclude(actual_yield__isnull=True, expected_yield__isnull=True)
+    
+    # Calculate average performance
+    total_performance = 0
+    performance_count = 0
+    low_performing_crops = 0
+    
+    for crop in crops_with_yield:
+        if crop.expected_yield and crop.actual_yield:
+            performance = (crop.actual_yield / crop.expected_yield) * 100
+            total_performance += performance
+            performance_count += 1
+            if performance < 70:
+                low_performing_crops += 1
+    
+    avg_crop_performance = int(total_performance / performance_count) if performance_count > 0 else 0
+    
+    # Upcoming harvests
+    upcoming_harvests = Crop.objects.filter(
+        status__in=['planted', 'growing'],
+        expected_harvest_date__lte=timezone.now().date() + timedelta(days=30)
+    ).order_by('expected_harvest_date')[:10]
+    
+    # Crop status counts
+    planted_crops = Crop.objects.filter(status='planted').count()
+    growing_crops = Crop.objects.filter(status='growing').count()
+    ready_crops = Crop.objects.filter(
+        status='growing',
+        expected_harvest_date__lte=timezone.now().date()
+    ).count()
+    harvested_crops_count = Crop.objects.filter(status='harvested').count()
+    
+    # Livestock data
+    all_livestock = Livestock.objects.exclude(status__in=['sold', 'deceased'])
+    sick_or_treatment_livestock = Livestock.objects.filter(status__in=['sick', 'under_treatment'])
+    livestock_by_type = Livestock.objects.values('type').annotate(count=Count('type'))
+    
+    # Financial breakdown
+    expense_by_category = FinancialTransaction.objects.filter(
+        type='expense', date__gte=current_month
+    ).values('category').annotate(total=Sum('amount')).order_by('-total')[:10]
+    
+    # Recent data
+    recent_activities = Activity.objects.select_related('user').order_by('-date')[:15]
+    
+    context = {
+        'total_crops': total_crops,
+        'active_crops': active_crops,
+        'total_livestock': total_livestock,
+        'healthy_livestock': healthy_livestock,
+        'sick_livestock': sick_livestock,
+        'income': income,
+        'expenses': expenses,
+        'net_income': net_income,
+        'profitability_ratio': profitability_ratio,
+        'avg_crop_performance': avg_crop_performance,
+        'low_performing_crops': low_performing_crops,
+        'crops_with_yield': crops_with_yield,
+        'upcoming_harvests': upcoming_harvests,
+        'planted_crops': planted_crops,
+        'growing_crops': growing_crops,
+        'ready_crops': ready_crops,
+        'harvested_crops': harvested_crops_count,
+        'all_livestock': all_livestock,
+        'sick_or_treatment_livestock': sick_or_treatment_livestock,
+        'livestock_by_type': livestock_by_type,
+        'expense_by_category': expense_by_category,
+        'recent_activities': recent_activities,
+    }
+    
+    return render(request, 'farm/consultant_dashboard.html', context)
 
 
 # Crop Views
-@login_required
 def crop_list(request):
-    """List all crops"""
+    """List all crops or show info page"""
+    if not request.user.is_authenticated:
+        return render(request, 'farm/crop_info.html')
+    
     crops = Crop.objects.filter(user=request.user).order_by('-planting_date')
     status_filter = request.GET.get('status')
     if status_filter:
@@ -191,9 +524,11 @@ def crop_delete(request, pk):
 
 
 # Livestock Views
-@login_required
 def livestock_list(request):
-    """List all livestock"""
+    """List all livestock or show info page"""
+    if not request.user.is_authenticated:
+        return render(request, 'farm/livestock_info.html')
+    
     livestock = Livestock.objects.filter(user=request.user).order_by('-date_acquired')
     type_filter = request.GET.get('type')
     status_filter = request.GET.get('status')
@@ -269,9 +604,11 @@ def livestock_delete(request, pk):
 
 
 # Inventory Views
-@login_required
 def inventory_list(request):
-    """List all inventory items"""
+    """List all inventory items or show info page"""
+    if not request.user.is_authenticated:
+        return render(request, 'farm/inventory_info.html')
+    
     items = InventoryItem.objects.filter(user=request.user).order_by('name')
     category_filter = request.GET.get('category')
     low_stock = request.GET.get('low_stock')
@@ -339,9 +676,11 @@ def inventory_delete(request, pk):
 
 
 # Financial Views
-@login_required
 def finance_list(request):
-    """List all financial transactions"""
+    """List all financial transactions or show info page"""
+    if not request.user.is_authenticated:
+        return render(request, 'farm/finance_info.html')
+    
     transactions = FinancialTransaction.objects.filter(user=request.user).order_by('-date')
     type_filter = request.GET.get('type')
     category_filter = request.GET.get('category')
@@ -410,9 +749,11 @@ def finance_delete(request, pk):
 
 
 # Task Views
-@login_required
 def task_list(request):
-    """List all tasks"""
+    """List all tasks or show info page"""
+    if not request.user.is_authenticated:
+        return render(request, 'farm/task_info.html')
+    
     tasks = Task.objects.filter(user=request.user).order_by('due_date')
     status_filter = request.GET.get('status')
     priority_filter = request.GET.get('priority')
@@ -542,7 +883,10 @@ def activity_delete(request, pk):
 # Analytics View
 @login_required
 def analytics(request):
-    """Analytics and reports view"""
+    """Analytics and reports view or show info page"""
+    if not request.user.is_authenticated:
+        return render(request, 'farm/analytics_info.html')
+    
     user = request.user
     
     # Crop statistics
@@ -573,6 +917,231 @@ def analytics(request):
     }
     return render(request, 'farm/analytics.html', context)
 
+
+# Admin Views
+from django.contrib.auth.models import User
+from django.http import JsonResponse, HttpResponse
+from django.db.models import Count, Q
+import json
+from datetime import datetime, timedelta
+
+@superuser_required
+def admin_dashboard(request):
+    """Main admin dashboard with overview statistics"""
+    from django.utils import timezone
+    
+    # Get all statistics
+    total_users = User.objects.count()
+    total_crops = Crop.objects.count()
+    total_livestock = Livestock.objects.count()
+    total_revenue = FinancialTransaction.objects.filter(type='income').aggregate(
+        total=Sum('amount'))['total'] or 0
+    
+    # Recent users
+    recent_users = User.objects.order_by('-date_joined')[:10]
+    
+    # Activity log
+    recent_activities = Activity.objects.select_related('user').order_by('-date')[:20]
+    
+    # Monthly statistics
+    current_month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0)
+    new_users_this_month = User.objects.filter(date_joined__gte=current_month_start).count()
+    active_users_today = User.objects.filter(last_login__date=timezone.now().date()).count()
+    transactions_this_month = FinancialTransaction.objects.filter(
+        date__gte=current_month_start).count()
+    
+    # Calculate growth rate
+    last_month_start = (current_month_start - timedelta(days=1)).replace(day=1)
+    last_month_users = User.objects.filter(
+        date_joined__gte=last_month_start,
+        date_joined__lt=current_month_start
+    ).count()
+    growth_rate = 0
+    if last_month_users > 0:
+        growth_rate = ((new_users_this_month - last_month_users) / last_month_users) * 100
+    
+    context = {
+        'total_users': total_users,
+        'total_crops': total_crops,
+        'total_livestock': total_livestock,
+        'total_revenue': total_revenue,
+        'recent_users': recent_users,
+        'recent_activities': recent_activities,
+        'new_users_this_month': new_users_this_month,
+        'active_users_today': active_users_today,
+        'transactions_this_month': transactions_this_month,
+        'growth_rate': round(growth_rate, 1),
+    }
+    return render(request, 'farm/admin_dashboard.html', context)
+
+@superuser_required
+def admin_users(request):
+    """Manage all users"""
+    users = User.objects.all().order_by('-date_joined')
+    context = {'users': users}
+    return render(request, 'farm/admin_users.html', context)
+
+@superuser_required
+def admin_user_detail(request, user_id):
+    """View and edit user details including role"""
+    from .forms import AdminUserProfileForm
+    
+    user = get_object_or_404(User, id=user_id)
+    profile = UserProfile.objects.get_or_create(user=user)[0]
+    
+    if request.method == 'POST':
+        form = AdminUserProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'User {user.username} profile updated successfully!')
+            return redirect('admin_user_detail', user_id=user_id)
+    else:
+        form = AdminUserProfileForm(instance=profile)
+    
+    user_crops = Crop.objects.filter(user=user)
+    user_livestock = Livestock.objects.filter(user=user)
+    user_transactions = FinancialTransaction.objects.filter(user=user)[:20]
+    
+    context = {
+        'view_user': user,
+        'profile': profile,
+        'form': form,
+        'user_crops': user_crops,
+        'user_livestock': user_livestock,
+        'user_transactions': user_transactions,
+    }
+    return render(request, 'farm/admin_user_detail.html', context)
+
+@superuser_required
+def admin_user_delete(request, user_id):
+    """Delete a user"""
+    if request.method == 'POST':
+        user = get_object_or_404(User, id=user_id)
+        if user.is_superuser:
+            return JsonResponse({'success': False, 'message': 'Cannot delete superuser'})
+        user.delete()
+        return JsonResponse({'success': True, 'message': 'User deleted successfully'})
+    return JsonResponse({'success': False, 'message': 'Invalid request'})
+
+@superuser_required
+def admin_crops(request):
+    """Manage all crops"""
+    crops = Crop.objects.all().select_related('user').order_by('-planting_date')
+    context = {'crops': crops}
+    return render(request, 'farm/admin_crops.html', context)
+
+@superuser_required
+def admin_livestock(request):
+    """Manage all livestock"""
+    livestock = Livestock.objects.all().select_related('user').order_by('-acquisition_date')
+    context = {'livestock': livestock}
+    return render(request, 'farm/admin_livestock.html', context)
+
+@superuser_required
+def admin_finance(request):
+    """Finance overview for all users"""
+    transactions = FinancialTransaction.objects.all().select_related('user').order_by('-date')[:100]
+    total_income = FinancialTransaction.objects.filter(type='income').aggregate(
+        total=Sum('amount'))['total'] or 0
+    total_expenses = FinancialTransaction.objects.filter(type='expense').aggregate(
+        total=Sum('amount'))['total'] or 0
+    
+    context = {
+        'transactions': transactions,
+        'total_income': total_income,
+        'total_expenses': total_expenses,
+        'net_total': total_income - total_expenses,
+    }
+    return render(request, 'farm/admin_finance.html', context)
+
+@superuser_required
+def admin_reports(request):
+    """Generate system-wide reports"""
+    context = {}
+    return render(request, 'farm/admin_reports.html', context)
+
+@superuser_required
+def admin_settings(request):
+    """System settings management"""
+    context = {}
+    return render(request, 'farm/admin_settings.html', context)
+
+@superuser_required
+def admin_backup(request):
+    """Backup and restore functionality"""
+    context = {}
+    return render(request, 'farm/admin_backup.html', context)
+
+@superuser_required
+def admin_export_data(request):
+    """Export all system data"""
+    import csv
+    from datetime import datetime
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="farmflow_export.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Export Date', datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+    writer.writerow([])
+    
+    # Export Users
+    writer.writerow(['=== USERS ==='])
+    writer.writerow(['ID', 'Username', 'Email', 'Role', 'Farm Name', 'Date Joined'])
+    for user in User.objects.all():
+        profile = UserProfile.objects.filter(user=user).first()
+        writer.writerow([
+            user.id,
+            user.username,
+            user.email,
+            profile.get_role_display() if profile else 'N/A',
+            profile.farm_name if profile else 'N/A',
+            user.date_joined.strftime('%Y-%m-%d')
+        ])
+    
+    writer.writerow([])
+    writer.writerow(['=== CROPS ==='])
+    writer.writerow(['ID', 'User', 'Name', 'Variety', 'Area', 'Status', 'Planting Date'])
+    for crop in Crop.objects.all():
+        writer.writerow([
+            crop.id,
+            crop.user.username,
+            crop.name,
+            crop.variety,
+            crop.area,
+            crop.get_status_display(),
+            crop.planting_date.strftime('%Y-%m-%d')
+        ])
+    
+    writer.writerow([])
+    writer.writerow(['=== LIVESTOCK ==='])
+    writer.writerow(['ID', 'User', 'Type', 'Breed', 'Tag', 'Status', 'Date Acquired'])
+    for animal in Livestock.objects.all():
+        writer.writerow([
+            animal.id,
+            animal.user.username,
+            animal.get_type_display(),
+            animal.breed,
+            animal.tag_number,
+            animal.get_status_display(),
+            animal.date_acquired.strftime('%Y-%m-%d')
+        ])
+    
+    writer.writerow([])
+    writer.writerow(['=== FINANCIAL TRANSACTIONS ==='])
+    writer.writerow(['ID', 'User', 'Type', 'Category', 'Amount', 'Description', 'Date'])
+    for trans in FinancialTransaction.objects.all():
+        writer.writerow([
+            trans.id,
+            trans.user.username,
+            trans.get_type_display(),
+            trans.get_category_display(),
+            trans.amount,
+            trans.description,
+            trans.date.strftime('%Y-%m-%d')
+        ])
+    
+    return response
 
 # Profile View
 @login_required

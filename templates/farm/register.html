@@ -1,34 +1,258 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
 
 {% block title %}Register - FarmFlow{% endblock %}
 
+{% block extra_css %}
+<style>
+    :root {
+        --primary-green: #2e7d32;
+        --secondary-green: #66bb6a;
+        --bg-light: #f0f4f0;
+    }
+    
+    body {
+        background: var(--bg-light);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+    }
+    
+    .auth-container {
+        width: 100%;
+        max-width: 450px;
+        margin: 0 auto;
+    }
+    
+    .neomorph-card {
+        background: var(--bg-light);
+        border-radius: 30px;
+        padding: 2.5rem 2rem;
+        box-shadow: 12px 12px 24px rgba(46, 125, 50, 0.15),
+                    -12px -12px 24px rgba(255, 255, 255, 0.95);
+    }
+    
+    .logo-container {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .logo-icon {
+        font-size: 3.5rem;
+        color: var(--primary-green);
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-10px) rotate(5deg); }
+    }
+    
+    .logo-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--primary-green);
+        margin: 0.5rem 0 0.25rem;
+    }
+    
+    .logo-subtitle {
+        color: #5a6c5b;
+        font-size: 0.9rem;
+        margin: 0;
+    }
+    
+    .form-group {
+        margin-bottom: 1.25rem;
+        position: relative;
+    }
+    
+    .input-wrapper {
+        position: relative;
+    }
+    
+    .input-icon {
+        position: absolute;
+        left: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--primary-green);
+        z-index: 1;
+        font-size: 1.1rem;
+    }
+    
+    .neomorph-input {
+        width: 100%;
+        padding: 0.85rem 1rem 0.85rem 3rem;
+        border: none;
+        border-radius: 16px;
+        background: var(--bg-light);
+        box-shadow: inset 6px 6px 12px rgba(46, 125, 50, 0.1),
+                    inset -6px -6px 12px rgba(255, 255, 255, 0.9);
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+    
+    .neomorph-input:focus {
+        outline: none;
+        box-shadow: inset 8px 8px 16px rgba(46, 125, 50, 0.15),
+                    inset -8px -8px 16px rgba(255, 255, 255, 1);
+    }
+    
+    .neomorph-input::placeholder {
+        color: #8a9b8b;
+    }
+    
+    .btn-neomorph-submit {
+        width: 100%;
+        padding: 0.95rem;
+        border: none;
+        border-radius: 16px;
+        background: linear-gradient(145deg, var(--secondary-green), var(--primary-green));
+        color: white;
+        font-weight: 700;
+        font-size: 1rem;
+        margin-top: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 8px 8px 16px rgba(46, 125, 50, 0.3),
+                    -8px -8px 16px rgba(102, 187, 106, 0.5);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .btn-neomorph-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 10px 10px 20px rgba(46, 125, 50, 0.35),
+                    -10px -10px 20px rgba(102, 187, 106, 0.55);
+    }
+    
+    .btn-neomorph-submit:active {
+        transform: translateY(0);
+        box-shadow: 6px 6px 12px rgba(46, 125, 50, 0.3),
+                    -6px -6px 12px rgba(102, 187, 106, 0.5);
+    }
+    
+    .divider {
+        text-align: center;
+        color: #8a9b8b;
+        font-size: 0.85rem;
+        margin: 1rem 0;
+    }
+    
+    .link-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.65rem 1.5rem;
+        border-radius: 14px;
+        background: var(--bg-light);
+        color: var(--primary-green);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        box-shadow: 6px 6px 12px rgba(46, 125, 50, 0.1),
+                    -6px -6px 12px rgba(255, 255, 255, 0.9);
+        transition: all 0.3s ease;
+    }
+    
+    .link-button:hover {
+        color: var(--primary-green);
+        box-shadow: inset 4px 4px 8px rgba(46, 125, 50, 0.15),
+                    inset -4px -4px 8px rgba(255, 255, 255, 0.95);
+    }
+    
+    .text-center {
+        text-align: center;
+    }
+    
+    .helptext {
+        display: none;
+    }
+    
+    label {
+        display: none;
+    }
+    
+    .row {
+        display: flex;
+        margin: 0 -0.5rem;
+    }
+    
+    .col-6 {
+        flex: 0 0 50%;
+        padding: 0 0.5rem;
+    }
+</style>
+{% endblock %}
+
 {% block auth_content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-8 col-lg-6">
-        <div class="card shadow-lg">
-            <div class="card-body p-5">
-                <div class="text-center mb-4">
-                    <i class="fas fa-seedling fa-3x text-success"></i>
-                    <h2 class="mt-3">Create Account</h2>
-                    <p class="text-muted">Join FarmFlow Today</p>
-                </div>
-                
-                <form method="post">
-                    {% csrf_token %}
-                    {{ form|crispy }}
-                    <button type="submit" class="btn btn-primary w-100 mb-3">
-                        <i class="fas fa-user-plus"></i> Register
-                    </button>
-                </form>
-                
-                <div class="text-center">
-                    <p class="mb-0">Already have an account?</p>
-                    <a href="{% url 'login' %}" class="btn btn-outline-success mt-2">
-                        <i class="fas fa-sign-in-alt"></i> Login
-                    </a>
+<div class="auth-container">
+    <div class="neomorph-card">
+        <div class="logo-container">
+            <i class="fas fa-seedling logo-icon"></i>
+            <h1 class="logo-title">Join FarmFlow</h1>
+            <p class="logo-subtitle">Create your account</p>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <i class="fas fa-user input-icon"></i>
+                    <input type="text" name="username" class="neomorph-input" placeholder="Username" required maxlength="150" autofocus>
                 </div>
             </div>
+            
+            <div class="row">
+                <div class="col-6">
+                    <div class="form-group">
+                        <div class="input-wrapper">
+                            <i class="fas fa-id-card input-icon"></i>
+                            <input type="text" name="first_name" class="neomorph-input" placeholder="First Name">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="form-group">
+                        <div class="input-wrapper">
+                            <i class="fas fa-id-badge input-icon"></i>
+                            <input type="text" name="last_name" class="neomorph-input" placeholder="Last Name">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input type="email" name="email" class="neomorph-input" placeholder="Email Address">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input type="password" name="password1" class="neomorph-input" placeholder="Password" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input type="password" name="password2" class="neomorph-input" placeholder="Confirm Password" required>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-neomorph-submit">
+                <i class="fas fa-user-plus"></i> Create Account
+            </button>
+        </form>
+        
+        <div class="divider">Already have an account?</div>
+        
+        <div class="text-center">
+            <a href="{% url 'login' %}" class="link-button">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
         </div>
     </div>
 </div>

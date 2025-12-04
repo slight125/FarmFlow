@@ -2,8 +2,14 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Homepage
+    # Homepage and Marketing Pages
     path('', views.homepage, name='homepage'),
+    path('features/', views.features_page, name='features_page'),
+    path('about/', views.about_page, name='about_page'),
+    path('pricing/', views.pricing_page, name='pricing_page'),
+    path('contact/', views.contact_page, name='contact_page'),
+    path('billing/', views.billing, name='billing'),
+    path('process-payment/', views.process_payment, name='process_payment'),
     
     # Authentication
     path('login/', views.user_login, name='login'),
@@ -57,4 +63,17 @@ urlpatterns = [
     
     # Profile
     path('profile/', views.profile, name='profile'),
+    
+    # Admin Routes (using 'management' prefix to avoid conflict with Django admin)
+    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('management/users/', views.admin_users, name='admin_users'),
+    path('management/user/<int:user_id>/', views.admin_user_detail, name='admin_user_detail'),
+    path('management/user/<int:user_id>/delete/', views.admin_user_delete, name='admin_user_delete'),
+    path('management/crops/', views.admin_crops, name='admin_crops'),
+    path('management/livestock/', views.admin_livestock, name='admin_livestock'),
+    path('management/finance/', views.admin_finance, name='admin_finance'),
+    path('management/reports/', views.admin_reports, name='admin_reports'),
+    path('management/settings/', views.admin_settings, name='admin_settings'),
+    path('management/backup/', views.admin_backup, name='admin_backup'),
+    path('management/export/all/', views.admin_export_data, name='admin_export_data'),
 ]

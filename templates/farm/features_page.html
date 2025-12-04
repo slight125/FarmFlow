@@ -1,0 +1,274 @@
+{% extends 'farm/base_marketing.html' %}
+
+{% block title %}Features - FarmFlow{% endblock %}
+{% block nav_features %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        padding: 60px 0;
+        background: linear-gradient(135deg, var(--bg-light) 0%, #ffffff 100%);
+    }
+
+    .page-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: var(--text-dark);
+        margin-bottom: 1rem;
+    }
+
+    .page-subtitle {
+        font-size: 1.3rem;
+        color: var(--text-light);
+        max-width: 700px;
+        margin: 0 auto 3rem;
+    }
+
+    .feature-card {
+        padding: 2.5rem;
+        background: var(--bg-light);
+        border-radius: 24px;
+        box-shadow: 8px 8px 16px rgba(46, 125, 50, 0.1),
+                    -8px -8px 16px rgba(255, 255, 255, 0.9);
+        transition: all 0.3s ease;
+        height: 100%;
+        margin-bottom: 2rem;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 12px 12px 24px rgba(46, 125, 50, 0.15),
+                    -12px -12px 24px rgba(255, 255, 255, 0.95);
+    }
+
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(145deg, var(--secondary-green), var(--primary-green));
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        box-shadow: 6px 6px 12px rgba(46, 125, 50, 0.3),
+                    -6px -6px 12px rgba(102, 187, 106, 0.5);
+    }
+
+    .feature-icon i {
+        font-size: 2rem;
+        color: white;
+    }
+
+    .feature-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 1rem;
+    }
+
+    .feature-description {
+        color: var(--text-light);
+        line-height: 1.7;
+        margin-bottom: 1.5rem;
+    }
+
+    .feature-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .feature-list li {
+        padding: 0.5rem 0;
+        color: var(--text-light);
+    }
+
+    .feature-list li i {
+        color: var(--primary-green);
+        margin-right: 0.5rem;
+    }
+
+    .cta-section {
+        padding: 80px 0;
+        text-center;
+        background: var(--bg-light);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero-section text-center">
+    <div class="container">
+        <h1 class="page-title">Powerful Features</h1>
+        <p class="page-subtitle">Everything you need to manage your modern farm efficiently and profitably</p>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <h3 class="feature-title">Crop Management</h3>
+                    <p class="feature-description">Complete crop lifecycle tracking from seed to harvest</p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check-circle"></i> Planting schedule management</li>
+                        <li><i class="fas fa-check-circle"></i> Growth stage tracking</li>
+                        <li><i class="fas fa-check-circle"></i> Harvest forecasting</li>
+                        <li><i class="fas fa-check-circle"></i> Field mapping & rotation</li>
+                        <li><i class="fas fa-check-circle"></i> Pest & disease monitoring</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-horse"></i>
+                    </div>
+                    <h3 class="feature-title">Livestock Tracking</h3>
+                    <p class="feature-description">Comprehensive animal health and production management</p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check-circle"></i> Individual animal records</li>
+                        <li><i class="fas fa-check-circle"></i> Health & vaccination tracking</li>
+                        <li><i class="fas fa-check-circle"></i> Breeding cycle management</li>
+                        <li><i class="fas fa-check-circle"></i> Weight & production tracking</li>
+                        <li><i class="fas fa-check-circle"></i> Feed consumption analysis</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <h3 class="feature-title">Inventory Control</h3>
+                    <p class="feature-description">Smart inventory management with automated alerts</p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check-circle"></i> Real-time stock levels</li>
+                        <li><i class="fas fa-check-circle"></i> Automatic reorder alerts</li>
+                        <li><i class="fas fa-check-circle"></i> Supplier management</li>
+                        <li><i class="fas fa-check-circle"></i> Equipment tracking</li>
+                        <li><i class="fas fa-check-circle"></i> Batch & expiry tracking</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <h3 class="feature-title">Financial Management</h3>
+                    <p class="feature-description">Complete financial oversight and profitability analysis</p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check-circle"></i> Income & expense tracking</li>
+                        <li><i class="fas fa-check-circle"></i> Profit & loss statements</li>
+                        <li><i class="fas fa-check-circle"></i> Budget planning & forecasting</li>
+                        <li><i class="fas fa-check-circle"></i> Tax preparation reports</li>
+                        <li><i class="fas fa-check-circle"></i> Cash flow management</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <h3 class="feature-title">Task Management</h3>
+                    <p class="feature-description">Organize and prioritize all farm activities</p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check-circle"></i> Task scheduling & assignment</li>
+                        <li><i class="fas fa-check-circle"></i> Priority management</li>
+                        <li><i class="fas fa-check-circle"></i> Recurring task automation</li>
+                        <li><i class="fas fa-check-circle"></i> Team collaboration tools</li>
+                        <li><i class="fas fa-check-circle"></i> Progress tracking</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="feature-title">Advanced Analytics</h3>
+                    <p class="feature-description">Data-driven insights for better decision making</p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check-circle"></i> Interactive dashboards</li>
+                        <li><i class="fas fa-check-circle"></i> Yield analysis & trends</li>
+                        <li><i class="fas fa-check-circle"></i> Performance metrics</li>
+                        <li><i class="fas fa-check-circle"></i> Custom reports</li>
+                        <li><i class="fas fa-check-circle"></i> Predictive analytics</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-cloud"></i>
+                    </div>
+                    <h3 class="feature-title">Cloud Sync</h3>
+                    <p class="feature-description">Access your data anywhere, anytime</p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check-circle"></i> Automatic cloud backup</li>
+                        <li><i class="fas fa-check-circle"></i> Multi-device access</li>
+                        <li><i class="fas fa-check-circle"></i> Offline mode support</li>
+                        <li><i class="fas fa-check-circle"></i> Data synchronization</li>
+                        <li><i class="fas fa-check-circle"></i> 99.9% uptime guarantee</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3 class="feature-title">Mobile App</h3>
+                    <p class="feature-description">Manage your farm on the go</p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check-circle"></i> iOS & Android apps</li>
+                        <li><i class="fas fa-check-circle"></i> Offline functionality</li>
+                        <li><i class="fas fa-check-circle"></i> Photo documentation</li>
+                        <li><i class="fas fa-check-circle"></i> GPS field mapping</li>
+                        <li><i class="fas fa-check-circle"></i> Quick task updates</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h3 class="feature-title">Smart Alerts</h3>
+                    <p class="feature-description">Stay informed with intelligent notifications</p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check-circle"></i> Task reminders</li>
+                        <li><i class="fas fa-check-circle"></i> Low stock alerts</li>
+                        <li><i class="fas fa-check-circle"></i> Weather warnings</li>
+                        <li><i class="fas fa-check-circle"></i> Harvest notifications</li>
+                        <li><i class="fas fa-check-circle"></i> Custom alert rules</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section">
+    <div class="container">
+        <h2 class="display-4 fw-bold mb-4">Ready to Experience These Features?</h2>
+        <p class="lead mb-4">Start your free trial today and transform your farm management</p>
+        <a href="{% url 'register' %}" class="btn btn-neomorph btn-neomorph-primary btn-lg">
+            Get Started Free <i class="fas fa-arrow-right ms-2"></i>
+        </a>
+    </div>
+</section>
+{% endblock %}

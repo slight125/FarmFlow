@@ -1,0 +1,344 @@
+{% extends 'base.html' %}
+
+{% block title %}Worker Dashboard - FarmFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1><i class="fas fa-hard-hat"></i> Worker Dashboard</h1>
+        <p class="text-muted mb-0">Welcome, {{ user.get_full_name|default:user.username }}!</p>
+    </div>
+    <div>
+        <a href="{% url 'activity_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Log Activity</a>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <a href="{% url 'task_list' %}" class="text-decoration-none">
+            <div class="card stat-card" style="border-left: 4px solid #2196f3; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">My Tasks Today</h6>
+                            <h2 class="mb-0 text-dark">{{ today_tasks }}</h2>
+                            <small class="text-muted">{{ total_my_tasks }} total assigned</small>
+                        </div>
+                        <div class="text-primary">
+                            <i class="fas fa-tasks fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a href="{% url 'task_list' %}" class="text-decoration-none">
+            <div class="card stat-card" style="border-left: 4px solid #4caf50; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Completed</h6>
+                            <h2 class="mb-0 text-dark">{{ completed_tasks }}</h2>
+                            <small class="text-success">This week</small>
+                        </div>
+                        <div class="text-success">
+                            <i class="fas fa-check-circle fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a href="{% url 'task_list' %}" class="text-decoration-none">
+            <div class="card stat-card" style="border-left: 4px solid #ff9800; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Pending</h6>
+                            <h2 class="mb-0 text-dark">{{ pending_tasks }}</h2>
+                            <small class="text-warning">{{ overdue_tasks }} overdue</small>
+                        </div>
+                        <div style="color: #ff9800;">
+                            <i class="fas fa-clock fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a href="{% url 'activity_list' %}" class="text-decoration-none">
+            <div class="card stat-card" style="border-left: 4px solid #9c27b0; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Activities Logged</h6>
+                            <h2 class="mb-0 text-dark">{{ my_activities }}</h2>
+                            <small class="text-muted">This month</small>
+                        </div>
+                        <div style="color: #9c27b0;">
+                            <i class="fas fa-clipboard-list fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<style>
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+</style>
+
+<!-- Alerts -->
+{% if overdue_tasks > 0 %}
+<div class="alert alert-danger alert-dismissible fade show">
+    <i class="fas fa-exclamation-triangle"></i>
+    <strong>Attention!</strong> You have {{ overdue_tasks }} overdue task(s) that need immediate attention.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+{% if today_tasks > 0 %}
+<div class="alert alert-info alert-dismissible fade show">
+    <i class="fas fa-info-circle"></i>
+    <strong>Today's Schedule:</strong> You have {{ today_tasks }} task(s) due today.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<div class="row">
+    <!-- My Assigned Tasks -->
+    <div class="col-md-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-list-check"></i> My Assigned Tasks</h5>
+                    <a href="{% url 'task_list' %}" class="btn btn-sm btn-light">View All</a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if assigned_tasks %}
+                    <div class="list-group list-group-flush">
+                        {% for task in assigned_tasks %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <h6 class="mb-0 me-2">{{ task.title }}</h6>
+                                        <span class="badge bg-{% if task.priority == 'urgent' %}danger{% elif task.priority == 'high' %}warning{% else %}secondary{% endif %}">
+                                            {{ task.get_priority_display }}
+                                        </span>
+                                    </div>
+                                    <p class="text-muted small mb-2">{{ task.description|truncatewords:15 }}</p>
+                                    <div class="d-flex gap-3 small text-muted">
+                                        <span><i class="fas fa-calendar"></i> Due: {{ task.due_date|date:"M d, Y" }}</span>
+                                        {% if task.related_crop %}
+                                            <span><i class="fas fa-seedling"></i> {{ task.related_crop.name }}</span>
+                                        {% endif %}
+                                        {% if task.related_livestock %}
+                                            <span><i class="fas fa-horse"></i> {{ task.related_livestock.tag_number }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-{% if task.status == 'completed' %}success{% elif task.status == 'in_progress' %}info{% elif task.status == 'cancelled' %}secondary{% else %}warning{% endif %} mb-2">
+                                        {{ task.get_status_display }}
+                                    </span>
+                                    {% if task.is_overdue and task.status != 'completed' %}
+                                        <br><span class="badge bg-danger">Overdue</span>
+                                    {% endif %}
+                                    <br>
+                                    <a href="{% url 'task_detail' task.id %}" class="btn btn-sm btn-outline-primary mt-2">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Tasks Assigned</h5>
+                        <p class="text-muted">You have no assigned tasks at the moment.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions & Info -->
+    <div class="col-md-4 mb-4">
+        <!-- Quick Actions -->
+        <div class="card mb-3">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'activity_create' %}" class="btn btn-outline-success">
+                        <i class="fas fa-clipboard-list"></i> Log Farm Activity
+                    </a>
+                    <a href="{% url 'task_list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-tasks"></i> View All My Tasks
+                    </a>
+                    <a href="{% url 'activity_list' %}" class="btn btn-outline-info">
+                        <i class="fas fa-history"></i> My Activity History
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Priority Breakdown -->
+        <div class="card mb-3">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Task Priority</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span><i class="fas fa-circle text-danger"></i> Urgent</span>
+                        <strong class="text-danger">{{ urgent_tasks }}</strong>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span><i class="fas fa-circle text-warning"></i> High</span>
+                        <strong class="text-warning">{{ high_tasks }}</strong>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span><i class="fas fa-circle text-info"></i> Medium</span>
+                        <strong class="text-info">{{ medium_tasks }}</strong>
+                    </div>
+                </div>
+                <div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span><i class="fas fa-circle text-secondary"></i> Low</span>
+                        <strong class="text-secondary">{{ low_tasks }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Performance -->
+        <div class="card">
+            <div class="card-header" style="background-color: #9c27b0; color: white;">
+                <h5 class="mb-0"><i class="fas fa-star"></i> My Performance</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <div class="mb-2">
+                        <h6 class="text-muted">Completion Rate</h6>
+                        {% if total_my_tasks > 0 %}
+                            {% widthratio completed_tasks total_my_tasks 100 as completion_rate %}
+                            <h2 class="mb-0 {% if completion_rate >= 80 %}text-success{% elif completion_rate >= 60 %}text-warning{% else %}text-danger{% endif %}">
+                                {{ completion_rate }}%
+                            </h2>
+                        {% else %}
+                            <h2 class="mb-0 text-muted">N/A</h2>
+                        {% endif %}
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar {% if completion_rate >= 80 %}bg-success{% elif completion_rate >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                             style="width: {{ completion_rate }}%"></div>
+                    </div>
+                </div>
+                <hr>
+                <div class="small">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Tasks Completed:</span>
+                        <strong class="text-success">{{ completed_tasks }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Tasks Pending:</span>
+                        <strong class="text-warning">{{ pending_tasks }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Activities Logged:</span>
+                        <strong class="text-info">{{ my_activities }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- My Recent Activities -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header" style="background-color: #00bcd4; color: white;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> My Recent Activities</h5>
+                    <a href="{% url 'activity_list' %}" class="btn btn-sm btn-light">View All</a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if recent_activities %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Activity Type</th>
+                                    <th>Title</th>
+                                    <th>Related To</th>
+                                    <th>Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for activity in recent_activities %}
+                                <tr>
+                                    <td>{{ activity.date|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        <span class="badge bg-info">{{ activity.get_activity_type_display }}</span>
+                                    </td>
+                                    <td><strong>{{ activity.title }}</strong></td>
+                                    <td>
+                                        {% if activity.related_crop %}
+                                            <i class="fas fa-seedling text-success"></i> {{ activity.related_crop.name }}
+                                        {% elif activity.related_livestock %}
+                                            <i class="fas fa-horse text-warning"></i> {{ activity.related_livestock.tag_number }}
+                                        {% else %}
+                                            <span class="text-muted">General</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if activity.duration %}
+                                            {{ activity.duration }} min
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-clipboard fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Activities Logged Yet</h5>
+                        <p class="text-muted">Start logging your farm activities to track your work.</p>
+                        <a href="{% url 'activity_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Log Your First Activity
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

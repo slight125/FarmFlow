@@ -1,0 +1,94 @@
+{% extends 'farm/base_info.html' %}
+
+{% block title %}Inventory Management - FarmFlow{% endblock %}
+{% block nav_inventory %}active{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="section-title">Inventory Management</h1>
+                <p class="section-subtitle">Track supplies, equipment, and resources to keep your farm running smoothly</p>
+                <a href="{% url 'register' %}" class="btn btn-neomorph btn-neomorph-primary btn-lg">Organize Your Inventory</a>
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-boxes" style="font-size: 15rem; color: var(--primary-green); opacity: 0.2;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">Smart Inventory Control</h2>
+            <p class="lead text-muted">Never run out of essential supplies again</p>
+        </div>
+        <div class="row">
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-warehouse"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Stock Tracking</h3>
+                    <p class="text-muted">Monitor quantities of seeds, fertilizers, feeds, and supplies in real-time across multiple locations.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Low Stock Alerts</h3>
+                    <p class="text-muted">Receive automatic notifications when inventory reaches reorder levels to prevent shortages.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Equipment Registry</h3>
+                    <p class="text-muted">Maintain records of machinery, tools, and equipment including maintenance schedules and warranties.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-sync-alt"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Usage Tracking</h3>
+                    <p class="text-muted">Log consumption rates, identify trends, and optimize purchasing to reduce waste and costs.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-barcode"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Batch Management</h3>
+                    <p class="text-muted">Track batch numbers, expiration dates, and supplier information for compliance and quality control.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Cost Analysis</h3>
+                    <p class="text-muted">Analyze inventory costs, track price changes, and make data-driven purchasing decisions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section">
+    <div class="container">
+        <h2 class="display-4 fw-bold mb-4">Take Control of Your Farm Supplies</h2>
+        <p class="lead mb-4">Reduce waste, prevent shortages, and optimize your inventory</p>
+        <a href="{% url 'register' %}" class="btn btn-neomorph btn-neomorph-primary btn-lg">Get Started Today</a>
+    </div>
+</section>
+{% endblock %}

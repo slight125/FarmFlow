@@ -1,0 +1,493 @@
+{% extends 'farm/base_marketing.html' %}
+
+{% block title %}Pricing - FarmFlow{% endblock %}
+{% block nav_pricing %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        padding: 50px 0 40px;
+        background: linear-gradient(135deg, var(--bg-light) 0%, #ffffff 100%);
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--text-dark);
+        margin-bottom: 0.75rem;
+    }
+
+    .page-subtitle {
+        font-size: 1.1rem;
+        color: var(--text-light);
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .pricing-section {
+        padding: 50px 0;
+    }
+
+    .pricing-cards-row {
+        display: flex;
+        align-items: stretch;
+    }
+
+    .pricing-card {
+        padding: 2rem 1.5rem;
+        background: var(--bg-light);
+        border-radius: 20px;
+        box-shadow: 8px 8px 16px rgba(46, 125, 50, 0.1),
+                    -8px -8px 16px rgba(255, 255, 255, 0.9);
+        height: 100%;
+        transition: all 0.3s ease;
+        position: relative;
+        border: 2px solid transparent;
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .pricing-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 10px 10px 20px rgba(46, 125, 50, 0.15),
+                    -10px -10px 20px rgba(255, 255, 255, 1);
+        border-color: rgba(46, 125, 50, 0.1);
+    }
+
+    .pricing-card.featured {
+        background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 100%);
+        box-shadow: 10px 10px 30px rgba(46, 125, 50, 0.4),
+                    -10px -10px 30px rgba(102, 187, 106, 0.5);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        transform: scale(1.05);
+    }
+
+    .pricing-card.featured:hover {
+        transform: scale(1.05) translateY(-8px);
+        box-shadow: 12px 12px 35px rgba(46, 125, 50, 0.5),
+                    -12px -12px 35px rgba(102, 187, 106, 0.6);
+    }
+
+    .pricing-card.featured * {
+        color: white !important;
+    }
+
+    .popular-badge {
+        position: absolute;
+        top: -15px;
+        right: 30px;
+        background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        color: #fff;
+        padding: 0.5rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        box-shadow: 4px 4px 12px rgba(255, 165, 0, 0.4);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .plan-name {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+    }
+
+    .plan-description {
+        color: var(--text-light);
+        margin-bottom: 1.25rem;
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+
+    .featured .plan-description {
+        color: rgba(255, 255, 255, 0.9) !important;
+    }
+
+    .price-container {
+        margin-bottom: 1.5rem;
+    }
+
+    .price {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--text-dark);
+        line-height: 1.2;
+    }
+
+    .featured .price {
+        color: white !important;
+    }
+
+    .price-currency {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        vertical-align: super;
+    }
+
+    .featured .price-currency {
+        color: white !important;
+    }
+
+    .price-period {
+        font-size: 1rem;
+        color: var(--text-light);
+        font-weight: 500;
+        display: block;
+        margin-top: 0.25rem;
+    }
+
+    .featured .price-period {
+        color: rgba(255, 255, 255, 0.9) !important;
+    }
+
+    .price-note {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        font-style: italic;
+        margin-top: 0.5rem;
+    }
+
+    .featured .price-note {
+        color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    .features-list {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 1.5rem;
+        flex-grow: 1;
+        min-height: 280px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+    }
+
+    .features-list li {
+        padding: 0.5rem 0;
+        color: var(--text-dark);
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid rgba(46, 125, 50, 0.1);
+        font-size: 0.9rem;
+    }
+
+    .features-list li:last-child {
+        border-bottom: none;
+    }
+
+    .featured .features-list li {
+        color: white !important;
+        border-bottom-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .features-list i {
+        color: var(--primary-green);
+        margin-right: 0.6rem;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .featured .features-list i {
+        color: white !important;
+    }
+
+    .btn-pricing {
+        width: 100%;
+        padding: 0.85rem;
+        font-weight: 600;
+        border-radius: 14px;
+        border: none;
+        background: var(--bg-light);
+        color: var(--primary-green);
+        box-shadow: inset 3px 3px 6px rgba(46, 125, 50, 0.1),
+                    inset -3px -3px 6px rgba(255, 255, 255, 0.9);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        font-size: 0.95rem;
+        text-decoration: none;
+        display: block;
+        text-align: center;
+        margin-top: auto;
+    }
+
+    .btn-pricing:hover {
+        box-shadow: inset 4px 4px 8px rgba(46, 125, 50, 0.15),
+                    inset -4px -4px 8px rgba(255, 255, 255, 1);
+    }
+
+    .featured .btn-pricing {
+        background: white;
+        color: var(--primary-green);
+        box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .featured .btn-pricing:hover {
+        box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .faq-section {
+        padding: 50px 0;
+        background: #ffffff;
+    }
+
+    .section-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--text-dark);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .faq-item {
+        padding: 1.5rem;
+        background: var(--bg-light);
+        border-radius: 16px;
+        box-shadow: 8px 8px 16px rgba(46, 125, 50, 0.1),
+                    -8px -8px 16px rgba(255, 255, 255, 0.9);
+        margin-bottom: 1rem;
+    }
+
+    .faq-question {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--text-dark);
+        margin-bottom: 0.75rem;
+    }
+
+    .faq-answer {
+        color: var(--text-light);
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .comparison-table {
+        background: var(--bg-light);
+        border-radius: 24px;
+        padding: 2rem;
+        box-shadow: 8px 8px 16px rgba(46, 125, 50, 0.1),
+                    -8px -8px 16px rgba(255, 255, 255, 0.9);
+    }
+
+    .comparison-table table {
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+    .comparison-table th {
+        padding: 1rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        border-bottom: 2px solid var(--primary-green);
+    }
+
+    .comparison-table td {
+        padding: 1rem;
+        color: var(--text-light);
+        border-bottom: 1px solid rgba(46, 125, 50, 0.1);
+    }
+
+    .check-icon {
+        color: var(--primary-green);
+        font-size: 1.2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero-section text-center">
+    <div class="container">
+        <h1 class="page-title">Simple, Transparent Pricing</h1>
+        <p class="page-subtitle">Choose the plan that fits your farm. All plans include 14-day free trial with full access. Pricing in Kenya Shillings (KSh).</p>
+    </div>
+</section>
+
+<section class="pricing-section">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <a href="{% url 'billing' %}?plan=starter" class="pricing-card" style="text-decoration: none;">
+                    <div class="plan-name">Starter</div>
+                    <div class="plan-description">Perfect for small farms just getting started</div>
+                    <div class="price-container">
+                        <span class="price-currency">KSh</span>
+                        <span class="price">1,500</span>
+                        <span class="price-period">/month</span>
+                        <div class="price-note">~$11 USD • Billed monthly</div>
+                    </div>
+                    <ul class="features-list">
+                        <li><i class="fas fa-check-circle"></i> Up to 50 acres</li>
+                        <li><i class="fas fa-check-circle"></i> 5 crop types</li>
+                        <li><i class="fas fa-check-circle"></i> Basic task management</li>
+                        <li><i class="fas fa-check-circle"></i> Inventory tracking</li>
+                        <li><i class="fas fa-check-circle"></i> Mobile app access</li>
+                        <li><i class="fas fa-check-circle"></i> Email support</li>
+                    </ul>
+                    <div class="btn btn-pricing">Start Free Trial</div>
+                </a>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <a href="{% url 'billing' %}?plan=professional" class="pricing-card featured" style="text-decoration: none;">
+                    <span class="popular-badge">Most Popular</span>
+                    <div class="plan-name">Professional</div>
+                    <div class="plan-description">Ideal for growing farms with diverse operations</div>
+                    <div class="price-container">
+                        <span class="price-currency">KSh</span>
+                        <span class="price">3,500</span>
+                        <span class="price-period">/month</span>
+                        <div class="price-note">~$27 USD • Save 20% annually</div>
+                    </div>
+                    <ul class="features-list">
+                        <li><i class="fas fa-check-circle"></i> Up to 500 acres</li>
+                        <li><i class="fas fa-check-circle"></i> Unlimited crop types</li>
+                        <li><i class="fas fa-check-circle"></i> Advanced task management</li>
+                        <li><i class="fas fa-check-circle"></i> Livestock tracking</li>
+                        <li><i class="fas fa-check-circle"></i> Financial management</li>
+                        <li><i class="fas fa-check-circle"></i> Weather integration</li>
+                        <li><i class="fas fa-check-circle"></i> Analytics & insights</li>
+                        <li><i class="fas fa-check-circle"></i> Priority support</li>
+                    </ul>
+                    <div class="btn btn-pricing">Start Free Trial</div>
+                </a>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <a href="{% url 'contact_page' %}" class="pricing-card" style="text-decoration: none;">
+                    <div class="plan-name">Enterprise</div>
+                    <div class="plan-description">For large operations requiring custom solutions</div>
+                    <div class="price-container">
+                        <span class="price" style="font-size: 1.6rem;">Custom Pricing</span>
+                        <div class="price-note" style="margin-top: 0.75rem;">Starting from KSh 8,000/mo</div>
+                    </div>
+                    <ul class="features-list">
+                        <li><i class="fas fa-check-circle"></i> Unlimited acres</li>
+                        <li><i class="fas fa-check-circle"></i> All Professional features</li>
+                        <li><i class="fas fa-check-circle"></i> Custom integrations</li>
+                        <li><i class="fas fa-check-circle"></i> API access</li>
+                        <li><i class="fas fa-check-circle"></i> Multi-farm management</li>
+                        <li><i class="fas fa-check-circle"></i> White-label options</li>
+                        <li><i class="fas fa-check-circle"></i> Dedicated account manager</li>
+                        <li><i class="fas fa-check-circle"></i> 24/7 phone support</li>
+                    </ul>
+                    <div class="btn btn-pricing">Contact Sales</div>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="pricing-section" style="background: #ffffff; display: none;">
+    <div class="container">
+        <h2 class="section-title">Feature Comparison</h2>
+        <div class="comparison-table">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th class="text-center">Starter</th>
+                            <th class="text-center">Professional</th>
+                            <th class="text-center">Enterprise</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Crop Management</td>
+                            <td class="text-center"><i class="fas fa-check check-icon"></i></td>
+                            <td class="text-center"><i class="fas fa-check check-icon"></i></td>
+                            <td class="text-center"><i class="fas fa-check check-icon"></i></td>
+                        </tr>
+                        <tr>
+                            <td>Livestock Tracking</td>
+                            <td class="text-center">—</td>
+                            <td class="text-center"><i class="fas fa-check check-icon"></i></td>
+                            <td class="text-center"><i class="fas fa-check check-icon"></i></td>
+                        </tr>
+                        <tr>
+                            <td>Financial Management</td>
+                            <td class="text-center">Basic</td>
+                            <td class="text-center"><i class="fas fa-check check-icon"></i></td>
+                            <td class="text-center"><i class="fas fa-check check-icon"></i></td>
+                        </tr>
+                        <tr>
+                            <td>Advanced Analytics</td>
+                            <td class="text-center">—</td>
+                            <td class="text-center"><i class="fas fa-check check-icon"></i></td>
+                            <td class="text-center"><i class="fas fa-check check-icon"></i></td>
+                        </tr>
+                        <tr>
+                            <td>Weather Integration</td>
+                            <td class="text-center">—</td>
+                            <td class="text-center"><i class="fas fa-check check-icon"></i></td>
+                            <td class="text-center"><i class="fas fa-check check-icon"></i></td>
+                        </tr>
+                        <tr>
+                            <td>Multi-Farm Management</td>
+                            <td class="text-center">—</td>
+                            <td class="text-center">—</td>
+                            <td class="text-center"><i class="fas fa-check check-icon"></i></td>
+                        </tr>
+                        <tr>
+                            <td>API Access</td>
+                            <td class="text-center">—</td>
+                            <td class="text-center">—</td>
+                            <td class="text-center"><i class="fas fa-check check-icon"></i></td>
+                        </tr>
+                        <tr>
+                            <td>Custom Integrations</td>
+                            <td class="text-center">—</td>
+                            <td class="text-center">—</td>
+                            <td class="text-center"><i class="fas fa-check check-icon"></i></td>
+                        </tr>
+                        <tr>
+                            <td>Support Level</td>
+                            <td class="text-center">Email</td>
+                            <td class="text-center">Priority</td>
+                            <td class="text-center">24/7 Phone</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="faq-section">
+    <div class="container">
+        <h2 class="section-title">Frequently Asked Questions</h2>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="faq-item">
+                    <div class="faq-question">Is there really a 14-day free trial?</div>
+                    <p class="faq-answer">Absolutely! Start with any plan and get full access for 14 days. No payment required during trial. Cancel anytime with no charges.</p>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">What payment methods do you accept?</div>
+                    <p class="faq-answer">We accept M-Pesa, Airtel Money, credit/debit cards (Visa, MasterCard), and bank transfers. For Enterprise plans, we can arrange custom billing schedules.</p>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">Can I switch plans anytime?</div>
+                    <p class="faq-answer">Yes! Upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate the cost accordingly.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="pricing-section" style="background: var(--bg-light); text-align: center; padding: 40px 0;">
+    <div class="container">
+        <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem;">Ready to Get Started?</h2>
+        <p style="font-size: 1.1rem; margin-bottom: 1.5rem; color: var(--text-light);">Join thousands of farms already using FarmFlow. Start your free trial today!</p>
+        <a href="{% url 'billing' %}?plan=professional" class="btn btn-neomorph btn-neomorph-primary btn-lg me-3">
+            Start Free Trial <i class="fas fa-arrow-right ms-2"></i>
+        </a>
+        <a href="{% url 'contact_page' %}" class="btn btn-neomorph btn-neomorph-secondary btn-lg">
+            Contact Sales <i class="fas fa-phone ms-2"></i>
+        </a>
+    </div>
+</section>
+{% endblock %}

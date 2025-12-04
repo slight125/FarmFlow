@@ -1,0 +1,94 @@
+{% extends 'farm/base_info.html' %}
+
+{% block title %}Analytics & Reports - FarmFlow{% endblock %}
+{% block nav_analytics %}active{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="section-title">Analytics & Reports</h1>
+                <p class="section-subtitle">Transform farm data into actionable insights with powerful analytics</p>
+                <a href="{% url 'register' %}" class="btn btn-neomorph btn-neomorph-primary btn-lg">View Analytics</a>
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-chart-line" style="font-size: 15rem; color: var(--primary-green); opacity: 0.2;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">Data-Driven Farm Management</h2>
+            <p class="lead text-muted">Make smarter decisions with comprehensive analytics</p>
+        </div>
+        <div class="row">
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Visual Dashboards</h3>
+                    <p class="text-muted">Interactive charts and graphs that make complex farm data easy to understand at a glance.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-money-bill-trend-up"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Financial Insights</h3>
+                    <p class="text-muted">Analyze revenue trends, expense patterns, and profitability across different farm operations.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-area"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Yield Analysis</h3>
+                    <p class="text-muted">Compare crop yields across seasons, identify trends, and optimize planting strategies.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Seasonal Trends</h3>
+                    <p class="text-muted">Track performance over time, identify seasonal patterns, and plan for future growing seasons.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-export"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Custom Reports</h3>
+                    <p class="text-muted">Generate detailed reports for any date range, export to PDF or Excel for sharing or archiving.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Performance Metrics</h3>
+                    <p class="text-muted">Track KPIs, measure progress toward goals, and benchmark against industry standards.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section">
+    <div class="container">
+        <h2 class="display-4 fw-bold mb-4">Turn Data Into Growth</h2>
+        <p class="lead mb-4">Discover insights that help you farm smarter and more profitably</p>
+        <a href="{% url 'register' %}" class="btn btn-neomorph btn-neomorph-primary btn-lg">Start Analyzing Today</a>
+    </div>
+</section>
+{% endblock %}

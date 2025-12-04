@@ -1,0 +1,94 @@
+{% extends 'farm/base_info.html' %}
+
+{% block title %}Task Management - FarmFlow{% endblock %}
+{% block nav_tasks %}active{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="section-title">Task Management</h1>
+                <p class="section-subtitle">Organize, prioritize, and complete all your farm activities efficiently</p>
+                <a href="{% url 'register' %}" class="btn btn-neomorph btn-neomorph-primary btn-lg">Organize Your Tasks</a>
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-tasks" style="font-size: 15rem; color: var(--primary-green); opacity: 0.2;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">Never Miss a Farm Task</h2>
+            <p class="lead text-muted">Stay on top of daily, weekly, and seasonal activities</p>
+        </div>
+        <div class="row">
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Task Organization</h3>
+                    <p class="text-muted">Create, assign, and prioritize tasks for crops, livestock, equipment maintenance, and more.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Due Date Tracking</h3>
+                    <p class="text-muted">Set deadlines, receive reminders, and ensure time-sensitive activities are completed on schedule.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Team Assignment</h3>
+                    <p class="text-muted">Delegate tasks to farm workers, track completion status, and improve team coordination.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Priority Management</h3>
+                    <p class="text-muted">Mark urgent tasks, focus on high-priority activities, and optimize your daily workflow.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-redo-alt"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Recurring Tasks</h3>
+                    <p class="text-muted">Set up repeating tasks for regular activities like feeding, watering, and equipment checks.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-check-double"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3">Completion Tracking</h3>
+                    <p class="text-muted">Monitor progress, mark tasks complete, and maintain a history of all farm activities.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section">
+    <div class="container">
+        <h2 class="display-4 fw-bold mb-4">Stay Organized & Productive</h2>
+        <p class="lead mb-4">Manage every farm activity from one central task list</p>
+        <a href="{% url 'register' %}" class="btn btn-neomorph btn-neomorph-primary btn-lg">Get Started Free</a>
+    </div>
+</section>
+{% endblock %}

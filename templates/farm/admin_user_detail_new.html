@@ -1,0 +1,344 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}User Detail - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #2e7d32 0%, #66bb6a 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .page-header h1 {
+        margin: 0;
+        font-size: 1.8rem;
+    }
+    
+    .info-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 1.5rem;
+        height: 100%;
+    }
+    
+    .info-card .card-header {
+        border-radius: 12px 12px 0 0 !important;
+        font-weight: 600;
+    }
+    
+    .user-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #e0e0e0;
+    }
+    
+    .info-item {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .info-item:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .info-value {
+        color: #333;
+        font-size: 1rem;
+    }
+    
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2e7d32;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e0e0e0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <h1><i class="fas fa-user-edit"></i> User Management</h1>
+    <a href="{% url 'admin_users' %}" class="btn btn-light"><i class="fas fa-arrow-left"></i> Back to Users</a>
+</div>
+
+<div class="row">
+    <!-- Left Sidebar - User Info -->
+    <div class="col-lg-4 col-md-5 mb-4">
+        <!-- User Info Card -->
+        <div class="info-card card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> User Information</h5>
+            </div>
+            <div class="card-body text-center">
+                {% if profile.avatar %}
+                    <img src="{{ profile.avatar.url }}" alt="Avatar" class="user-avatar mb-3">
+                {% else %}
+                    <div class="mb-3">
+                        <i class="fas fa-user-circle" style="font-size: 120px; color: #6c757d;"></i>
+                    </div>
+                {% endif %}
+                
+                <h4 class="mb-1">{{ view_user.get_full_name|default:view_user.username }}</h4>
+                <p class="text-muted mb-3">@{{ view_user.username }}</p>
+                
+                <div class="text-start">
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-envelope"></i> Email</div>
+                        <div class="info-value">{{ view_user.email|default:"Not provided" }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-user-tag"></i> Role</div>
+                        <div class="info-value"><span class="badge bg-primary">{{ profile.get_role_display }}</span></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-calendar"></i> Member Since</div>
+                        <div class="info-value">{{ view_user.date_joined|date:"M d, Y" }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-sign-in-alt"></i> Last Login</div>
+                        <div class="info-value">{{ view_user.last_login|date:"M d, Y H:i"|default:"Never" }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-check-circle"></i> Status</div>
+                        <div class="info-value">
+                            {% if view_user.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                            {% if view_user.is_staff %}
+                                <span class="badge bg-warning ms-1">Staff</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Farm Details -->
+        <div class="info-card card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-tractor"></i> Farm Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="info-item">
+                    <div class="info-label"><i class="fas fa-phone"></i> Phone</div>
+                    <div class="info-value">{{ profile.phone|default:"Not provided" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><i class="fas fa-warehouse"></i> Farm Name</div>
+                    <div class="info-value">{{ profile.farm_name|default:"Not provided" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><i class="fas fa-map-marker-alt"></i> Location</div>
+                    <div class="info-value">{{ profile.location|default:"Not provided" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><i class="fas fa-chart-area"></i> Farm Size</div>
+                    <div class="info-value">{{ profile.farm_size|default:"Not provided" }} acres</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="info-card card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Danger Zone</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">Permanently delete this user and all associated data. This action cannot be undone.</p>
+                <button class="btn btn-danger w-100" onclick="confirmDelete()">
+                    <i class="fas fa-trash"></i> Delete User
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Content - Edit Form & Data -->
+    <div class="col-lg-8 col-md-7">
+        <!-- User Profile Form -->
+        <div class="info-card card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-edit"></i> Edit User Profile & Role</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="d-grid gap-2 d-md-block mt-3">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-save"></i> Update Profile & Role
+                        </button>
+                        <a href="{% url 'admin_users' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <h2 class="section-title"><i class="fas fa-database"></i> User Data Overview</h2>
+
+        <!-- User Crops -->
+        <div class="info-card card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-seedling"></i> Recent Crops ({{ user_crops.count }})</h5>
+            </div>
+            <div class="card-body">
+                {% if user_crops %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Variety</th>
+                                    <th>Area (acres)</th>
+                                    <th>Status</th>
+                                    <th>Planting Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for crop in user_crops %}
+                                <tr>
+                                    <td>{{ crop.name }}</td>
+                                    <td>{{ crop.variety }}</td>
+                                    <td>{{ crop.area }}</td>
+                                    <td><span class="badge bg-info">{{ crop.get_status_display }}</span></td>
+                                    <td>{{ crop.planting_date }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No crops recorded</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- User Livestock -->
+        <div class="info-card card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="fas fa-horse"></i> Recent Livestock ({{ user_livestock.count }})</h5>
+            </div>
+            <div class="card-body">
+                {% if user_livestock %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Breed</th>
+                                    <th>Tag Number</th>
+                                    <th>Status</th>
+                                    <th>Date Acquired</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for animal in user_livestock %}
+                                <tr>
+                                    <td>{{ animal.get_type_display }}</td>
+                                    <td>{{ animal.breed }}</td>
+                                    <td>{{ animal.tag_number }}</td>
+                                    <td><span class="badge bg-success">{{ animal.get_status_display }}</span></td>
+                                    <td>{{ animal.date_acquired }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No livestock recorded</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="info-card card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-money-bill-wave"></i> Recent Transactions ({{ user_transactions.count }})</h5>
+            </div>
+            <div class="card-body">
+                {% if user_transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Category</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for trans in user_transactions %}
+                                <tr>
+                                    <td>{{ trans.date }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if trans.type == 'income' %}success{% else %}danger{% endif %}">
+                                            {{ trans.get_type_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ trans.get_category_display }}</td>
+                                    <td>{{ trans.description|truncatewords:5 }}</td>
+                                    <td class="{% if trans.type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                                        KSh {{ trans.amount }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No transactions recorded</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete() {
+    if (confirm('Are you sure you want to delete this user? This action cannot be undone!')) {
+        fetch("{% url 'admin_user_delete' view_user.id %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('User deleted successfully');
+                window.location.href = "{% url 'admin_users' %}";
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Error deleting user');
+            console.error('Error:', error);
+        });
+    }
+}
+</script>
+{% endblock %}

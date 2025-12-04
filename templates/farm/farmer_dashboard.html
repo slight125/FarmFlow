@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+
+{% block title %}Farmer Dashboard - FarmFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1><i class="fas fa-tractor"></i> Farmer Dashboard</h1>
+        <p class="text-muted mb-0">Welcome back, {{ user.get_full_name|default:user.username }}!</p>
+    </div>
+    <div>
+        <a href="{% url 'crop_create' %}" class="btn btn-success"><i class="fas fa-plus"></i> Add Crop</a>
+        <a href="{% url 'livestock_create' %}" class="btn btn-warning"><i class="fas fa-plus"></i> Add Livestock</a>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <a href="{% url 'crop_list' %}" class="text-decoration-none">
+            <div class="card stat-card" style="border-left: 4px solid #2e7d32; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Active Crops</h6>
+                            <h2 class="mb-0 text-dark">{{ active_crops }}</h2>
+                            <small class="text-muted">of {{ total_crops }} total</small>
+                        </div>
+                        <div class="text-success">
+                            <i class="fas fa-leaf fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a href="{% url 'livestock_list' %}" class="text-decoration-none">
+            <div class="card stat-card" style="border-left: 4px solid #ff9800; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Livestock</h6>
+                            <h2 class="mb-0 text-dark">{{ total_livestock }}</h2>
+                            <small class="text-muted">healthy animals</small>
+                        </div>
+                        <div style="color: #ff9800;">
+                            <i class="fas fa-horse fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a href="{% url 'finance_list' %}" class="text-decoration-none">
+            <div class="card stat-card" style="border-left: 4px solid #4caf50; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Income</h6>
+                            <h2 class="mb-0 text-dark">KSh {{ income|floatformat:0 }}</h2>
+                            <small class="text-danger">-KSh {{ expenses|floatformat:0 }} expenses</small>
+                        </div>
+                        <div class="text-success">
+                            <i class="fas fa-arrow-up fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a href="{% url 'task_list' %}" class="text-decoration-none">
+            <div class="card stat-card" style="border-left: 4px solid {% if pending_tasks > 5 %}#f44336{% else %}#2196f3{% endif %}; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Pending Tasks</h6>
+                            <h2 class="mb-0 text-dark">{{ pending_tasks }}</h2>
+                            <small class="{% if overdue_tasks > 0 %}text-danger{% else %}text-muted{% endif %}">
+                                {{ overdue_tasks }} overdue
+                            </small>
+                        </div>
+                        <div class="{% if pending_tasks > 5 %}text-danger{% else %}text-primary{% endif %}">
+                            <i class="fas fa-tasks fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<style>
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+</style>
+
+<!-- Alerts -->
+{% if low_stock_items > 0 %}
+<div class="alert alert-warning alert-dismissible fade show">
+    <i class="fas fa-exclamation-triangle"></i>
+    <strong>Low Stock Alert!</strong> You have {{ low_stock_items }} inventory item(s) below reorder level.
+    <a href="{% url 'inventory_list' %}" class="alert-link">Check Inventory</a>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+{% if overdue_tasks > 0 %}
+<div class="alert alert-danger alert-dismissible fade show">
+    <i class="fas fa-clock"></i>
+    <strong>Overdue Tasks!</strong> You have {{ overdue_tasks }} task(s) past their due date.
+    <a href="{% url 'task_list' %}" class="alert-link">View Tasks</a>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<div class="row">
+    <!-- My Crops -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-seedling"></i> My Active Crops</h5>
+                    <a href="{% url 'crop_list' %}" class="btn btn-sm btn-light">View All</a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if recent_crops %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Crop</th>
+                                    <th>Variety</th>
+                                    <th>Status</th>
+                                    <th>Days to Harvest</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for crop in recent_crops %}
+                                <tr>
+                                    <td><strong>{{ crop.name }}</strong></td>
+                                    <td>{{ crop.variety }}</td>
+                                    <td><span class="badge bg-info">{{ crop.get_status_display }}</span></td>
+                                    <td>
+                                        {% if crop.days_to_harvest > 0 %}
+                                            <span class="badge bg-warning">{{ crop.days_to_harvest }} days</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Ready</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-seedling fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No crops planted yet</p>
+                        <a href="{% url 'crop_create' %}" class="btn btn-success">Add Your First Crop</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- My Livestock -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header" style="background-color: #ff9800; color: white;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-horse"></i> My Livestock</h5>
+                    <a href="{% url 'livestock_list' %}" class="btn btn-sm btn-light">View All</a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if recent_livestock %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Tag</th>
+                                    <th>Breed</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for animal in recent_livestock %}
+                                <tr>
+                                    <td><strong>{{ animal.get_type_display }}</strong></td>
+                                    <td>{{ animal.tag_number }}</td>
+                                    <td>{{ animal.breed }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if animal.status == 'healthy' %}success{% elif animal.status == 'sick' %}danger{% else %}warning{% endif %}">
+                                            {{ animal.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-horse fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No livestock recorded yet</p>
+                        <a href="{% url 'livestock_create' %}" class="btn btn-warning">Add Your First Animal</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- My Tasks -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-tasks"></i> My Tasks</h5>
+                    <a href="{% url 'task_list' %}" class="btn btn-sm btn-light">View All</a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if upcoming_tasks %}
+                    <div class="list-group list-group-flush">
+                        {% for task in upcoming_tasks %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ task.title }}</h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar"></i> {{ task.due_date|date:"M d, Y" }}
+                                    </small>
+                                    {% if task.is_overdue %}
+                                    <span class="badge bg-danger ms-2">Overdue</span>
+                                    {% endif %}
+                                </div>
+                                <span class="badge bg-{% if task.priority == 'urgent' %}danger{% elif task.priority == 'high' %}warning{% else %}secondary{% endif %}">
+                                    {{ task.get_priority_display }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                        <p class="text-muted">All caught up! No pending tasks.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header" style="background-color: #9c27b0; color: white;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-clipboard-list"></i> Recent Activities</h5>
+                    <a href="{% url 'activity_list' %}" class="btn btn-sm btn-light">View All</a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if recent_activities %}
+                    <div class="list-group list-group-flush">
+                        {% for activity in recent_activities %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="mb-1">{{ activity.title }}</h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-tag"></i> {{ activity.get_activity_type_display }} • 
+                                        <i class="fas fa-clock"></i> {{ activity.date|date:"M d, Y" }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No activities logged yet</p>
+                        <a href="{% url 'activity_create' %}" class="btn btn-primary">Log Activity</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Finance Summary -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header" style="background-color: #00bcd4; color: white;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-money-bill-wave"></i> Financial Summary</h5>
+                    <a href="{% url 'finance_list' %}" class="btn btn-sm btn-light">View All</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="text-center p-3" style="background: #e8f5e9; border-radius: 10px;">
+                            <h6 class="text-muted mb-2">Total Income</h6>
+                            <h3 class="text-success mb-0">KSh {{ income|floatformat:2 }}</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3" style="background: #ffebee; border-radius: 10px;">
+                            <h6 class="text-muted mb-2">Total Expenses</h6>
+                            <h3 class="text-danger mb-0">KSh {{ expenses|floatformat:2 }}</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3" style="background: {% if net_income >= 0 %}#e3f2fd{% else %}#fff3e0{% endif %}; border-radius: 10px;">
+                            <h6 class="text-muted mb-2">Net Balance</h6>
+                            <h3 class="{% if net_income >= 0 %}text-primary{% else %}text-warning{% endif %} mb-0">
+                                KSh {{ net_income|floatformat:2 }}
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+
+                {% if recent_transactions %}
+                    <h6 class="mb-3">Recent Transactions</h6>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Category</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for trans in recent_transactions %}
+                                <tr>
+                                    <td>{{ trans.date|date:"M d" }}</td>
+                                    <td>{{ trans.description|truncatewords:6 }}</td>
+                                    <td>{{ trans.get_category_display }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if trans.type == 'income' %}success{% else %}danger{% endif %}">
+                                            {{ trans.get_type_display }}
+                                        </span>
+                                    </td>
+                                    <td class="{% if trans.type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                                        <strong>KSh {{ trans.amount|floatformat:2 }}</strong>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-3">
+                        <p class="text-muted">No transactions recorded yet</p>
+                        <a href="{% url 'finance_create' %}" class="btn btn-primary">Add Transaction</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

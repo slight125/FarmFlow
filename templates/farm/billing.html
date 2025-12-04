@@ -1,0 +1,507 @@
+{% extends 'farm/base_marketing.html' %}
+
+{% block title %}Billing - FarmFlow{% endblock %}
+
+{% block extra_css %}
+<style>
+    .billing-section {
+        padding: 60px 0;
+        background: linear-gradient(135deg, var(--bg-light) 0%, #ffffff 100%);
+        min-height: 100vh;
+    }
+
+    .billing-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .billing-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .billing-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+    }
+
+    .billing-subtitle {
+        font-size: 1.1rem;
+        color: var(--text-light);
+    }
+
+    .billing-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    .plan-summary-card,
+    .payment-card {
+        background: var(--bg-light);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 8px 8px 16px rgba(46, 125, 50, 0.1),
+                    -8px -8px 16px rgba(255, 255, 255, 0.9);
+    }
+
+    .card-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--primary-green);
+        padding-bottom: 0.75rem;
+    }
+
+    .plan-info {
+        margin-bottom: 2rem;
+    }
+
+    .plan-name {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--primary-green);
+        margin-bottom: 0.5rem;
+    }
+
+    .plan-price {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--text-dark);
+        margin-bottom: 1rem;
+    }
+
+    .plan-price-currency {
+        font-size: 1.2rem;
+        vertical-align: super;
+    }
+
+    .plan-features {
+        list-style: none;
+        padding: 0;
+        margin: 1.5rem 0;
+    }
+
+    .plan-features li {
+        padding: 0.5rem 0;
+        color: var(--text-dark);
+        display: flex;
+        align-items: center;
+        font-size: 0.95rem;
+    }
+
+    .plan-features i {
+        color: var(--primary-green);
+        margin-right: 0.75rem;
+        font-size: 1rem;
+    }
+
+    .billing-cycle {
+        margin-bottom: 1.5rem;
+    }
+
+    .cycle-options {
+        display: flex;
+        gap: 1rem;
+        margin-top: 0.75rem;
+    }
+
+    .cycle-option {
+        flex: 1;
+        padding: 1rem;
+        background: var(--bg-light);
+        border: 2px solid rgba(46, 125, 50, 0.2);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+
+    .cycle-option:hover {
+        border-color: var(--primary-green);
+    }
+
+    .cycle-option.active {
+        background: var(--primary-green);
+        color: white;
+        border-color: var(--primary-green);
+        box-shadow: 4px 4px 8px rgba(46, 125, 50, 0.3);
+    }
+
+    .cycle-option input[type="radio"] {
+        display: none;
+    }
+
+    .cycle-label {
+        font-weight: 600;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+
+    .cycle-price {
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+
+    .cycle-option.active .cycle-price {
+        opacity: 1;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.85rem;
+        border: 2px solid rgba(46, 125, 50, 0.2);
+        border-radius: 12px;
+        background: var(--bg-light);
+        box-shadow: inset 2px 2px 4px rgba(46, 125, 50, 0.05),
+                    inset -2px -2px 4px rgba(255, 255, 255, 0.9);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-green);
+        box-shadow: inset 2px 2px 4px rgba(46, 125, 50, 0.1),
+                    inset -2px -2px 4px rgba(255, 255, 255, 1);
+    }
+
+    .payment-methods {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .payment-method {
+        padding: 1rem;
+        background: var(--bg-light);
+        border: 2px solid rgba(46, 125, 50, 0.2);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .payment-method:hover {
+        border-color: var(--primary-green);
+    }
+
+    .payment-method.active {
+        background: var(--primary-green);
+        color: white;
+        border-color: var(--primary-green);
+    }
+
+    .payment-method input[type="radio"] {
+        display: none;
+    }
+
+    .payment-method i {
+        font-size: 1.5rem;
+    }
+
+    .payment-method-name {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .order-summary {
+        background: rgba(46, 125, 50, 0.05);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(46, 125, 50, 0.1);
+    }
+
+    .summary-row:last-child {
+        border-bottom: none;
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: var(--primary-green);
+        padding-top: 1rem;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 1.25rem;
+        background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 100%);
+        color: white;
+        border: none;
+        border-radius: 14px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 4px 4px 12px rgba(46, 125, 50, 0.3);
+        margin-top: 1.5rem;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 6px 6px 16px rgba(46, 125, 50, 0.4);
+    }
+
+    .security-note {
+        text-align: center;
+        margin-top: 1rem;
+        color: var(--text-light);
+        font-size: 0.85rem;
+    }
+
+    .security-note i {
+        color: var(--primary-green);
+        margin-right: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .billing-content {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="billing-section">
+    <div class="container billing-container">
+        <div class="billing-header">
+            <h1 class="billing-title">Complete Your Purchase</h1>
+            <p class="billing-subtitle">Start your 14-day free trial today. Cancel anytime.</p>
+        </div>
+
+        <div class="billing-content">
+            <!-- Plan Summary -->
+            <div class="plan-summary-card">
+                <h2 class="card-title">Plan Summary</h2>
+                <div class="plan-info">
+                    <div class="plan-name" id="planName">Professional Plan</div>
+                    <div class="plan-price">
+                        <span class="plan-price-currency">KSh</span>
+                        <span id="planPrice">3,500</span>
+                        <span style="font-size: 1rem; font-weight: 500;">/month</span>
+                    </div>
+                </div>
+
+                <div class="billing-cycle">
+                    <label class="form-label">Billing Cycle</label>
+                    <div class="cycle-options">
+                        <label class="cycle-option active" data-cycle="monthly">
+                            <input type="radio" name="billing_cycle" value="monthly" checked>
+                            <span class="cycle-label">Monthly</span>
+                            <span class="cycle-price" id="monthlyPrice">KSh 3,500</span>
+                        </label>
+                        <label class="cycle-option" data-cycle="annual">
+                            <input type="radio" name="billing_cycle" value="annual">
+                            <span class="cycle-label">Annual</span>
+                            <span class="cycle-price" id="annualPrice">KSh 33,600</span>
+                            <span style="display:block; font-size: 0.75rem; color: #2e7d32; font-weight: 600;">Save 20%</span>
+                        </label>
+                    </div>
+                </div>
+
+                <ul class="plan-features" id="planFeatures">
+                    <li><i class="fas fa-check-circle"></i> Up to 500 acres</li>
+                    <li><i class="fas fa-check-circle"></i> Unlimited crop types</li>
+                    <li><i class="fas fa-check-circle"></i> Livestock tracking</li>
+                    <li><i class="fas fa-check-circle"></i> Financial management</li>
+                    <li><i class="fas fa-check-circle"></i> Weather integration</li>
+                    <li><i class="fas fa-check-circle"></i> Analytics & insights</li>
+                </ul>
+
+                <div class="order-summary">
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span id="subtotal">KSh 3,500</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>14-day free trial</span>
+                        <span style="color: var(--primary-green);">-KSh 3,500</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Due Today</span>
+                        <span id="dueToday">KSh 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Form -->
+            <div class="payment-card">
+                <h2 class="card-title">Payment Information</h2>
+                
+                <form id="billingForm" method="POST" action="{% url 'process_payment' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="plan" id="selectedPlan" value="professional">
+                    <input type="hidden" name="cycle" id="selectedCycle" value="monthly">
+
+                    <div class="form-group">
+                        <label class="form-label">Payment Method</label>
+                        <div class="payment-methods">
+                            <label class="payment-method active" data-method="mpesa">
+                                <input type="radio" name="payment_method" value="mpesa" checked>
+                                <i class="fas fa-mobile-alt"></i>
+                                <span class="payment-method-name">M-Pesa</span>
+                            </label>
+                            <label class="payment-method" data-method="airtel">
+                                <input type="radio" name="payment_method" value="airtel">
+                                <i class="fas fa-phone"></i>
+                                <span class="payment-method-name">Airtel Money</span>
+                            </label>
+                            <label class="payment-method" data-method="card">
+                                <input type="radio" name="payment_method" value="card">
+                                <i class="fas fa-credit-card"></i>
+                                <span class="payment-method-name">Card</span>
+                            </label>
+                            <label class="payment-method" data-method="bank">
+                                <input type="radio" name="payment_method" value="bank">
+                                <i class="fas fa-university"></i>
+                                <span class="payment-method-name">Bank</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="fullName">Full Name</label>
+                        <input type="text" class="form-control" id="fullName" name="full_name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+
+                    <div class="form-group" id="phoneGroup">
+                        <label class="form-label" for="phone">Phone Number</label>
+                        <input type="tel" class="form-control" id="phone" name="phone" placeholder="0712345678" required>
+                    </div>
+
+                    <div class="form-group" id="cardGroup" style="display: none;">
+                        <label class="form-label" for="cardNumber">Card Number</label>
+                        <input type="text" class="form-control" id="cardNumber" name="card_number" placeholder="1234 5678 9012 3456">
+                    </div>
+
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-lock me-2"></i> Start Free Trial
+                    </button>
+
+                    <div class="security-note">
+                        <i class="fas fa-shield-alt"></i>
+                        Your payment information is encrypted and secure
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// Plan data
+const planData = {
+    starter: {
+        name: 'Starter Plan',
+        monthlyPrice: 1500,
+        annualPrice: 14400,
+        features: [
+            'Up to 50 acres',
+            '5 crop types',
+            'Basic task management',
+            'Inventory tracking',
+            'Mobile app access',
+            'Email support'
+        ]
+    },
+    professional: {
+        name: 'Professional Plan',
+        monthlyPrice: 3500,
+        annualPrice: 33600,
+        features: [
+            'Up to 500 acres',
+            'Unlimited crop types',
+            'Livestock tracking',
+            'Financial management',
+            'Weather integration',
+            'Analytics & insights'
+        ]
+    }
+};
+
+// Get plan from URL
+const urlParams = new URLSearchParams(window.location.search);
+const selectedPlanKey = urlParams.get('plan') || 'professional';
+const plan = planData[selectedPlanKey];
+
+// Update page with plan data
+document.getElementById('planName').textContent = plan.name;
+document.getElementById('selectedPlan').value = selectedPlanKey;
+document.getElementById('planPrice').textContent = plan.monthlyPrice.toLocaleString();
+document.getElementById('monthlyPrice').textContent = `KSh ${plan.monthlyPrice.toLocaleString()}`;
+document.getElementById('annualPrice').textContent = `KSh ${plan.annualPrice.toLocaleString()}`;
+document.getElementById('subtotal').textContent = `KSh ${plan.monthlyPrice.toLocaleString()}`;
+
+// Update features
+const featuresHtml = plan.features.map(f => `<li><i class="fas fa-check-circle"></i> ${f}</li>`).join('');
+document.getElementById('planFeatures').innerHTML = featuresHtml;
+
+// Billing cycle toggle
+document.querySelectorAll('.cycle-option').forEach(option => {
+    option.addEventListener('click', function() {
+        document.querySelectorAll('.cycle-option').forEach(o => o.classList.remove('active'));
+        this.classList.add('active');
+        const cycle = this.dataset.cycle;
+        document.getElementById('selectedCycle').value = cycle;
+        
+        const price = cycle === 'monthly' ? plan.monthlyPrice : plan.annualPrice;
+        document.getElementById('subtotal').textContent = `KSh ${price.toLocaleString()}`;
+    });
+});
+
+// Payment method toggle
+document.querySelectorAll('.payment-method').forEach(method => {
+    method.addEventListener('click', function() {
+        document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('active'));
+        this.classList.add('active');
+        
+        const selectedMethod = this.dataset.method;
+        if (selectedMethod === 'card') {
+            document.getElementById('phoneGroup').style.display = 'none';
+            document.getElementById('cardGroup').style.display = 'block';
+        } else {
+            document.getElementById('phoneGroup').style.display = 'block';
+            document.getElementById('cardGroup').style.display = 'none';
+        }
+    });
+});
+
+// Form submission
+document.getElementById('billingForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    alert('Payment processing will be integrated with your payment gateway (M-Pesa, Airtel Money, etc.)');
+    // Here you would integrate with actual payment gateway
+    window.location.href = "{% url 'register' %}";
+});
+</script>
+{% endblock %}
