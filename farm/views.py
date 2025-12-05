@@ -51,6 +51,11 @@ def contact_page(request):
     return render(request, 'farm/contact_page.html')
 
 
+def tutorial_page(request):
+    """Tutorial page view"""
+    return render(request, 'farm/tutorial_page.html')
+
+
 def billing(request):
     """Billing page view"""
     return render(request, 'farm/billing.html')

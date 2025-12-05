@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FarmFlow - Modern Farm Management Made Simple</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%232e7d32'/%3E%3Cpath d='M50 25 Q45 35 40 45 Q35 55 30 65 L35 70 Q45 60 50 50 Q55 60 65 70 L70 65 Q65 55 60 45 Q55 35 50 25 M50 40 Q48 45 46 50 L50 55 L54 50 Q52 45 50 40' fill='%23ffffff'/%3E%3C/svg%3E">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -35,7 +36,10 @@
 
         /* Neumorphism Navbar */
         .navbar-custom {
-            background: var(--bg-light);
+            background-image: linear-gradient(rgba(240, 244, 240, 0.92), rgba(240, 244, 240, 0.92)), url('https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             padding: 1rem 0;
             position: fixed;
             width: 100%;
@@ -44,6 +48,8 @@
             box-shadow: 8px 8px 16px rgba(46, 125, 50, 0.1),
                         -8px -8px 16px rgba(255, 255, 255, 0.9);
             transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
         .navbar-custom.scrolled {
@@ -152,7 +158,7 @@
             align-items: center;
             position: relative;
             overflow: hidden;
-            background: url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1920&q=80') center/cover no-repeat;
+            background: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1920&q=80') center/cover no-repeat;
         }
 
         .hero-section::before {
@@ -162,7 +168,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(135deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.3) 100%);
+            background: linear-gradient(135deg, rgba(46, 125, 50, 0.75) 0%, rgba(27, 94, 32, 0.65) 100%);
             z-index: 0;
         }
 
@@ -172,28 +178,28 @@
         }
 
         .hero-section .hero-badge {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .hero-section .hero-title {
             color: #ffffff;
-            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8), 0px 0px 20px rgba(0, 0, 0, 0.5);
+            font-weight: 900;
         }
 
         .hero-section .hero-title .highlight {
-            background: linear-gradient(135deg, #66bb6a, #81c784);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+            color: #ffffff;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8), 0px 0px 20px rgba(0, 0, 0, 0.5);
         }
 
         .hero-section .hero-subtitle {
-            color: #f5f5f5;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            color: #ffffff;
+            text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.9), 0px 0px 15px rgba(0, 0, 0, 0.6);
+            font-weight: 600;
         }
 
         .hero-badge {
@@ -519,7 +525,7 @@
                         <a href="{% url 'register' %}" class="btn btn-neomorph btn-neomorph-primary">
                             Start Free Trial <i class="fas fa-arrow-right ms-2"></i>
                         </a>
-                        <a href="#features" class="btn btn-neomorph btn-neomorph-secondary">
+                        <a href="{% url 'tutorial_page' %}" class="btn btn-neomorph btn-neomorph-secondary">
                             Watch Demo
                         </a>
                     </div>
@@ -743,8 +749,9 @@
                             <i class="fas fa-envelope"></i>
                         </div>
                         <h3 class="h5 fw-bold mb-3">Email Us</h3>
-                        <p class="text-muted mb-0">support@farmflow.com</p>
-                        <p class="text-muted">sales@farmflow.com</p>
+                        <a href="mailto:allanmurage125@gmail.com" class="text-decoration-none" style="color: var(--primary-green); font-weight: 600;">
+                            <p class="mb-0">allanmurage125@gmail.com</p>
+                        </a>
                     </div>
                 </div>
                 <div class="col-lg-4">
@@ -753,8 +760,10 @@
                             <i class="fas fa-phone"></i>
                         </div>
                         <h3 class="h5 fw-bold mb-3">Call Us</h3>
-                        <p class="text-muted mb-0">+1 (555) 123-4567</p>
-                        <p class="text-muted">Mon-Fri 9am-5pm EST</p>
+                        <a href="tel:+254702789788" class="text-decoration-none" style="color: var(--primary-green); font-weight: 600;">
+                            <p class="mb-0">0702 789 788</p>
+                        </a>
+                        <p class="text-muted mt-2">Mon-Fri 8am-6pm EAT</p>
                     </div>
                 </div>
                 <div class="col-lg-4">
@@ -763,8 +772,9 @@
                             <i class="fas fa-map-marker-alt"></i>
                         </div>
                         <h3 class="h5 fw-bold mb-3">Visit Us</h3>
-                        <p class="text-muted mb-0">123 Farm Street</p>
-                        <p class="text-muted">Agriculture City, AC 12345</p>
+                        <a href="https://maps.app.goo.gl/9dSwPzHqZsS783QAA" target="_blank" rel="noopener noreferrer" class="text-decoration-none" style="color: var(--primary-green); font-weight: 600;">
+                            <p class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>View on Google Maps</p>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -816,10 +826,15 @@
             </div>
             <hr class="my-4">
             <div class="row align-items-center">
-                <div class="col-md-6 text-center text-md-start">
+                <div class="col-md-4 text-center text-md-start">
                     <p class="text-muted mb-0">&copy; 2025 FarmFlow. All rights reserved.</p>
                 </div>
-                <div class="col-md-6 text-center text-md-end">
+                <div class="col-md-4 text-center">
+                    <p class="text-muted mb-0">
+                        Developed by <a href="https://allanmurage.tech" target="_blank" rel="noopener noreferrer" class="text-decoration-none fw-semibold" style="color: #6366f1;">Allan Murage</a>
+                    </p>
+                </div>
+                <div class="col-md-4 text-center text-md-end">
                     <a href="#" class="text-muted me-3"><i class="fab fa-facebook fa-lg"></i></a>
                     <a href="#" class="text-muted me-3"><i class="fab fa-twitter fa-lg"></i></a>
                     <a href="#" class="text-muted me-3"><i class="fab fa-instagram fa-lg"></i></a>
