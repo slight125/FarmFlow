@@ -212,6 +212,7 @@ farmflow-suite-main/
 
 Built with Django, Bootstrap, Font Awesome, and Crispy Forms
 
+Credits To Programmer Allan Githinji Murage for developing this application
 ---
 
 **FarmFlow** - Empowering Modern Agriculture through Technology
