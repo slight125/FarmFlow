@@ -62,21 +62,119 @@ def billing(request):
 
 
 def process_payment(request):
-    """Process payment (placeholder for payment gateway integration)"""
+    """Process payment via Paystack"""
     if request.method == 'POST':
-        # Here you would integrate with M-Pesa, Airtel Money, or card payment gateway
+        import os
+        import requests
+        from decimal import Decimal
+        
         plan = request.POST.get('plan')
         cycle = request.POST.get('cycle')
         payment_method = request.POST.get('payment_method')
+        email = request.POST.get('email')
+        full_name = request.POST.get('full_name')
         
-        messages.success(request, 'Payment processing initiated. You will receive a confirmation shortly.')
-        return redirect('register')
+        # Define plan prices in KES (converted to kobo/cents for Paystack)
+        prices = {
+            'starter': {'monthly': 1500, 'annual': 14400},
+            'professional': {'monthly': 3500, 'annual': 33600},
+            'enterprise': {'monthly': 7500, 'annual': 72000}
+        }
+        
+        # Get amount (in KES)
+        amount = prices.get(plan, {}).get(cycle, 0)
+        
+        # For 14-day free trial, amount is 0
+        if amount == 0:
+            messages.success(request, 'Your 14-day free trial has been activated! Please register to continue.')
+            return redirect('register')
+        
+        # Initialize Paystack transaction
+        paystack_secret = os.getenv('PAYSTACK_SECRET_KEY')
+        url = 'https://api.paystack.co/transaction/initialize'
+        
+        headers = {
+            'Authorization': f'Bearer {paystack_secret}',
+            'Content-Type': 'application/json'
+        }
+        
+        # Convert KES to kobo (Paystack uses smallest currency unit)
+        # 1 KES = 100 kobo
+        amount_kobo = int(amount * 100)
+        
+        data = {
+            'email': email,
+            'amount': amount_kobo,
+            'currency': 'KES',
+            'reference': f'farmflow_{plan}_{cycle}_{request.user.id if request.user.is_authenticated else "guest"}',
+            'callback_url': request.build_absolute_uri('/payment-callback/'),
+            'metadata': {
+                'plan': plan,
+                'cycle': cycle,
+                'payment_method': payment_method,
+                'full_name': full_name
+            }
+        }
+        
+        try:
+            response = requests.post(url, json=data, headers=headers)
+            response_data = response.json()
+            
+            if response_data.get('status'):
+                authorization_url = response_data['data']['authorization_url']
+                return redirect(authorization_url)
+            else:
+                messages.error(request, f"Payment initialization failed: {response_data.get('message', 'Unknown error')}")
+                return redirect('billing')
+        except Exception as e:
+            messages.error(request, f'Payment processing error: {str(e)}')
+            return redirect('billing')
     
     return redirect('billing')
 
 
+def payment_callback(request):
+    """Handle Paystack payment callback"""
+    import os
+    import requests
+    
+    reference = request.GET.get('reference')
+    
+    if not reference:
+        messages.error(request, 'Invalid payment reference')
+        return redirect('billing')
+    
+    # Verify transaction with Paystack
+    paystack_secret = os.getenv('PAYSTACK_SECRET_KEY')
+    url = f'https://api.paystack.co/transaction/verify/{reference}'
+    
+    headers = {
+        'Authorization': f'Bearer {paystack_secret}',
+    }
+    
+    try:
+        response = requests.get(url, headers=headers)
+        response_data = response.json()
+        
+        if response_data.get('status') and response_data['data']['status'] == 'success':
+            # Payment successful
+            metadata = response_data['data']['metadata']
+            messages.success(request, f"Payment successful! Your {metadata.get('plan', 'plan')} subscription is now active.")
+            return redirect('register')
+        else:
+            messages.error(request, 'Payment verification failed. Please contact support.')
+            return redirect('billing')
+    except Exception as e:
+        messages.error(request, f'Payment verification error: {str(e)}')
+        return redirect('billing')
+
+
 def register(request):
     """User registration view"""
+    # Redirect if already logged in
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
         if form.is_valid():
@@ -92,6 +190,10 @@ def register(request):
 
 def user_login(request):
     """User login view"""
+    # Redirect if already logged in
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
@@ -190,6 +292,12 @@ def farmer_dashboard(request):
     recent_activities = Activity.objects.filter(user=user).order_by('-date')[:5]
     recent_transactions = FinancialTransaction.objects.filter(user=user).order_by('-date')[:10]
     
+    # AI Insights
+    from .ai_assistant import FarmAIAssistant
+    ai_assistant = FarmAIAssistant(user)
+    ai_insights = ai_assistant.get_dashboard_insights()
+    ai_task_suggestions = ai_assistant.get_smart_task_suggestions()
+    
     context = {
         'total_crops': total_crops,
         'active_crops': active_crops,
@@ -208,6 +316,8 @@ def farmer_dashboard(request):
         'recent_livestock': recent_livestock,
         'recent_activities': recent_activities,
         'recent_transactions': recent_transactions,
+        'ai_insights': ai_insights,
+        'ai_task_suggestions': ai_task_suggestions,
     }
     
     return render(request, 'farm/farmer_dashboard.html', context)
@@ -1168,6 +1278,76 @@ def profile(request):
         'profile': profile,
     }
     return render(request, 'farm/profile.html', context)
+
+
+@login_required
+@login_required
+def ai_chat(request):
+    """AI Assistant Chat Interface"""
+    return render(request, 'farm/ai_chat.html')
+
+
+@login_required
+def ai_chat_message(request):
+    """Handle AI chat messages via AJAX - Using Gemini AI"""
+    from django.http import JsonResponse
+    from .gemini_chatbot import GeminiChatBot
+    from .ai_chatbot import FarmAIChatBot
+    import json
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            user_message = data.get('message', '').strip()
+            
+            if not user_message:
+                return JsonResponse({
+                    'error': 'Please enter a message',
+                    'suggestions': ['How are my crops?', 'Show livestock status', 'Financial summary']
+                })
+            
+            # Try Gemini first
+            try:
+                gemini_bot = GeminiChatBot(request.user)
+                response = gemini_bot.get_response(user_message)
+                
+                # If Gemini fails with API key error, fallback to basic chatbot
+                if response.get('type') == 'error' and 'API key' in response.get('message', ''):
+                    logger.warning('Gemini API key not configured, falling back to basic chatbot')
+                    basic_bot = FarmAIChatBot(request.user)
+                    response = basic_bot.get_response(user_message)
+                
+                return JsonResponse(response)
+                
+            except Exception as gemini_error:
+                logger.error(f'Gemini error: {str(gemini_error)}')
+                # Fallback to basic chatbot on any Gemini error
+                try:
+                    basic_bot = FarmAIChatBot(request.user)
+                    response = basic_bot.get_response(user_message)
+                    return JsonResponse(response)
+                except Exception as basic_error:
+                    logger.error(f'Basic chatbot error: {str(basic_error)}')
+                    return JsonResponse({
+                        'error': 'AI service temporarily unavailable',
+                        'message': 'I apologize, but I\'m having trouble processing your request right now. Please try again in a moment.',
+                        'suggestions': ['Refresh and retry', 'View dashboard', 'Check farm data']
+                    })
+            
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON format'}, status=400)
+        except Exception as e:
+            logger.error(f'Unexpected error in ai_chat_message: {str(e)}')
+            return JsonResponse({
+                'error': str(e),
+                'message': 'An unexpected error occurred. Please try again.',
+                'suggestions': ['Try again', 'Reload page']
+            }, status=500)
+    
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 
 # Import models at the top to fix the reference

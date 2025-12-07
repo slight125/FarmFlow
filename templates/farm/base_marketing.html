@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,6 +15,7 @@
             box-sizing: border-box;
         }
 
+        /* CSS Variables */
         :root {
             --primary-green: #2e7d32;
             --secondary-green: #66bb6a;
@@ -22,8 +23,14 @@
             --dark-green: #1b5e20;
             --accent-orange: #ffa726;
             --bg-light: #f0f4f0;
+            --bg-card: #ffffff;
             --text-dark: #2c3e30;
             --text-light: #5a6c5b;
+            --text-inverse: #ffffff;
+            --border-color: rgba(46, 125, 50, 0.1);
+            --shadow-color: rgba(46, 125, 50, 0.1);
+            --shadow-light: rgba(255, 255, 255, 0.9);
+            --overlay-bg: rgba(240, 244, 240, 0.95);
         }
 
         body {
@@ -31,6 +38,20 @@
             background: var(--bg-light);
             color: var(--text-dark);
             overflow-x: hidden;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--text-dark);
+        }
+        
+        p, span, div {
+            color: var(--text-dark);
+        }
+        
+        .card, .modal-content {
+            background-color: var(--bg-card);
+            color: var(--text-dark);
+            border-color: var(--border-color);
         }
 
         /* Neumorphism Navbar */
@@ -41,8 +62,8 @@
             width: 100%;
             top: 0;
             z-index: 1000;
-            box-shadow: 8px 8px 16px rgba(46, 125, 50, 0.1),
-                        -8px -8px 16px rgba(255, 255, 255, 0.9);
+            box-shadow: 8px 8px 16px var(--shadow-color),
+                        -8px -8px 16px var(--shadow-light);
             transition: all 0.3s ease;
             background-size: cover;
             background-position: center;
@@ -56,17 +77,17 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(240, 244, 240, 0.95);
+            background: var(--overlay-bg);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             z-index: -1;
         }
 
         .navbar-custom.scrolled {
-            box-shadow: 8px 8px 24px rgba(46, 125, 50, 0.15),
-                        -8px -8px 24px rgba(255, 255, 255, 0.95);
+            box-shadow: 8px 8px 24px var(--shadow-color),
+                        -8px -8px 24px var(--shadow-light);
         }
-
+        
         .navbar-brand {
             font-size: 1.5rem;
             font-weight: 700;
@@ -96,12 +117,12 @@
 
         .nav-link-custom:hover {
             color: var(--primary-green) !important;
-            background: rgba(46, 125, 50, 0.05);
+            background: var(--border-color);
         }
 
         .nav-link-custom.active {
             color: var(--primary-green) !important;
-            background: rgba(46, 125, 50, 0.05);
+            background: var(--border-color);
             border-bottom: 3px solid var(--primary-green);
             border-radius: 12px 12px 0 0;
         }
@@ -112,11 +133,11 @@
 
         /* Neumorphism Buttons */
         .btn-neomorph {
-            padding: 0.75rem 2rem;
-            border-radius: 16px;
+            padding: 0.5rem 1.25rem;
+            border-radius: 12px;
             border: none;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.875rem;
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
@@ -139,13 +160,13 @@
         .btn-neomorph-login {
             background: var(--bg-light);
             color: var(--text-dark);
-            padding: 0.6rem 1.5rem;
-            box-shadow: 6px 6px 12px rgba(46, 125, 50, 0.1),
-                        -6px -6px 12px rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            box-shadow: 4px 4px 8px rgba(46, 125, 50, 0.1),
+                        -4px -4px 8px rgba(255, 255, 255, 0.9);
         }
 
         .main-content {
-            padding-top: 80px;
+            padding-top: 100px;
             min-height: calc(100vh - 200px);
         }
 

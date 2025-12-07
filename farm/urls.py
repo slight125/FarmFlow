@@ -11,6 +11,7 @@ urlpatterns = [
     path('tutorial/', views.tutorial_page, name='tutorial_page'),
     path('billing/', views.billing, name='billing'),
     path('process-payment/', views.process_payment, name='process_payment'),
+    path('payment-callback/', views.payment_callback, name='payment_callback'),
     
     # Authentication
     path('login/', views.user_login, name='login'),
@@ -61,6 +62,10 @@ urlpatterns = [
     
     # Analytics
     path('analytics/', views.analytics, name='analytics'),
+    
+    # AI Assistant
+    path('ai-chat/', views.ai_chat, name='ai_chat'),
+    path('ai-chat/message/', views.ai_chat_message, name='ai_chat_message'),
     
     # Profile
     path('profile/', views.profile, name='profile'),

@@ -84,6 +84,87 @@
     </div>
 </div>
 
+<!-- AI Insights Section -->
+{% if ai_insights %}
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4><i class="fas fa-brain"></i> AI Insights & Recommendations</h4>
+        <a href="{% url 'ai_chat' %}" class="btn btn-sm btn-outline-success">
+            <i class="fas fa-comments"></i> Chat with AI
+        </a>
+    </div>
+    
+    <div class="row">
+        {% for insight in ai_insights %}
+        <div class="col-md-6 mb-3">
+            <div class="card h-100 shadow-sm border-0" 
+                 style="border-left: 4px solid 
+                 {% if insight.type == 'alert' %}#f44336
+                 {% elif insight.type == 'warning' %}#ff9800
+                 {% elif insight.type == 'success' %}#4caf50
+                 {% elif insight.type == 'suggestion' %}#2196f3
+                 {% else %}#9e9e9e{% endif %};">
+                <div class="card-body">
+                    <div class="d-flex align-items-start">
+                        <div class="me-3 fs-3">
+                            {% if insight.type == 'alert' %}
+                                <i class="fas fa-exclamation-circle text-danger"></i>
+                            {% elif insight.type == 'warning' %}
+                                <i class="fas fa-exclamation-triangle text-warning"></i>
+                            {% elif insight.type == 'success' %}
+                                <i class="fas fa-check-circle text-success"></i>
+                            {% elif insight.type == 'suggestion' %}
+                                <i class="fas fa-lightbulb text-info"></i>
+                            {% else %}
+                                <i class="fas fa-info-circle text-secondary"></i>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="card-title mb-2">
+                                <span class="badge bg-{% if insight.priority == 'urgent' %}danger
+                                             {% elif insight.priority == 'high' %}warning
+                                             {% elif insight.priority == 'medium' %}info
+                                             {% else %}secondary{% endif %}">
+                                    {{ insight.priority|upper }}
+                                </span>
+                            </h6>
+                            <p class="card-text mb-2">{{ insight.message }}</p>
+                            {% if insight.action %}
+                            <small class="text-muted">
+                                <i class="fas fa-arrow-right"></i> {{ insight.action }}
+                            </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- AI Task Suggestions -->
+{% if ai_task_suggestions %}
+<div class="mb-4">
+    <h5><i class="fas fa-magic"></i> AI-Suggested Tasks</h5>
+    <div class="list-group">
+        {% for task in ai_task_suggestions|slice:":5" %}
+        <div class="list-group-item list-group-item-action d-flex align-items-center">
+            <div class="form-check me-3">
+                <input class="form-check-input" type="checkbox" id="aiTask{{ forloop.counter }}">
+            </div>
+            <div class="flex-grow-1">
+                <h6 class="mb-1">{{ task.title }}</h6>
+                <small class="text-muted">{{ task.description }}</small>
+            </div>
+            <span class="badge bg-info">AI Suggested</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
 <!-- Alerts -->
 {% if low_stock_items > 0 %}
 <div class="alert alert-warning">
