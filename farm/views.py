@@ -1289,8 +1289,9 @@ def ai_chat(request):
 
 @login_required
 def ai_chat_message(request):
-    """Handle AI chat messages via AJAX - Using Gemini AI"""
+    """Handle AI chat messages via AJAX - Using OpenAI with Gemini fallback"""
     from django.http import JsonResponse
+    from .openai_chatbot import OpenAIChatBot
     from .gemini_chatbot import GeminiChatBot
     from .ai_chatbot import FarmAIChatBot
     import json
@@ -1309,33 +1310,44 @@ def ai_chat_message(request):
                     'suggestions': ['How are my crops?', 'Show livestock status', 'Financial summary']
                 })
             
-            # Try Gemini first
+            # Try OpenAI first (primary)
             try:
-                gemini_bot = GeminiChatBot(request.user)
-                response = gemini_bot.get_response(user_message)
-                
-                # If Gemini fails with API key error, fallback to basic chatbot
-                if response.get('type') == 'error' and 'API key' in response.get('message', ''):
-                    logger.warning('Gemini API key not configured, falling back to basic chatbot')
-                    basic_bot = FarmAIChatBot(request.user)
-                    response = basic_bot.get_response(user_message)
-                
-                return JsonResponse(response)
-                
-            except Exception as gemini_error:
-                logger.error(f'Gemini error: {str(gemini_error)}')
-                # Fallback to basic chatbot on any Gemini error
-                try:
-                    basic_bot = FarmAIChatBot(request.user)
-                    response = basic_bot.get_response(user_message)
+                logger.info('Attempting OpenAI response...')
+                openai_bot = OpenAIChatBot(request.user)
+                if openai_bot.client:  # Only try if API key is configured
+                    response = openai_bot.get_response(user_message)
+                    logger.info('OpenAI response successful')
                     return JsonResponse(response)
-                except Exception as basic_error:
-                    logger.error(f'Basic chatbot error: {str(basic_error)}')
-                    return JsonResponse({
-                        'error': 'AI service temporarily unavailable',
-                        'message': 'I apologize, but I\'m having trouble processing your request right now. Please try again in a moment.',
-                        'suggestions': ['Refresh and retry', 'View dashboard', 'Check farm data']
-                    })
+                else:
+                    raise Exception('OpenAI not configured')
+                
+            except Exception as openai_error:
+                logger.warning(f'OpenAI unavailable: {str(openai_error)}, using Gemini')
+                
+                # Fallback to Gemini
+                try:
+                    gemini_bot = GeminiChatBot(request.user)
+                    response = gemini_bot.get_response(user_message)
+                    logger.info('Gemini fallback successful')
+                    return JsonResponse(response)
+                    
+                except Exception as gemini_error:
+                    logger.error(f'Gemini error: {str(gemini_error)}, falling back to basic chatbot')
+                    
+                    # Final fallback to basic chatbot
+                    try:
+                        basic_bot = FarmAIChatBot(request.user)
+                        response = basic_bot.get_response(user_message)
+                        logger.info('Basic chatbot fallback successful')
+                        return JsonResponse(response)
+                        
+                    except Exception as basic_error:
+                        logger.error(f'All AI services failed: {str(basic_error)}')
+                        return JsonResponse({
+                            'error': 'AI service temporarily unavailable',
+                            'message': 'I apologize, but I\'m having trouble processing your request right now. Please try again in a moment.',
+                            'suggestions': ['Refresh and retry', 'View dashboard', 'Check farm data']
+                        })
             
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON format'}, status=400)

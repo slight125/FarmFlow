@@ -181,6 +181,22 @@
         flex: 0 0 50%;
         padding: 0 0.5rem;
     }
+    
+    .password-toggle {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #8a9b8b;
+        cursor: pointer;
+        z-index: 1;
+        font-size: 0.9rem;
+        transition: color 0.3s ease;
+    }
+    
+    .password-toggle:hover {
+        color: var(--primary-green);
+    }
 </style>
 {% endblock %}
 
@@ -193,13 +209,29 @@
             <p class="logo-subtitle">Create your account</p>
         </div>
         
+        {% if form.errors %}
+        <div class="alert alert-danger" style="margin-bottom: 1rem; padding: 0.75rem; border-radius: 12px; background: #ffebee; color: #c62828; font-size: 0.875rem;">
+            <strong>Please correct the following errors:</strong>
+            <ul style="margin: 0.5rem 0 0 0; padding-left: 1.25rem;">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ field.label }}: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
         <form method="post">
             {% csrf_token %}
             
             <div class="form-group">
                 <div class="input-wrapper">
                     <i class="fas fa-user input-icon"></i>
-                    <input type="text" name="username" class="neomorph-input" placeholder="Username" required maxlength="150" autofocus>
+                    <input type="text" name="username" class="neomorph-input" placeholder="Username" required maxlength="150" autofocus value="{{ form.username.value|default:'' }}">
                 </div>
             </div>
             
@@ -208,7 +240,7 @@
                     <div class="form-group">
                         <div class="input-wrapper">
                             <i class="fas fa-id-card input-icon"></i>
-                            <input type="text" name="first_name" class="neomorph-input" placeholder="First Name">
+                            <input type="text" name="first_name" class="neomorph-input" placeholder="First Name" value="{{ form.first_name.value|default:'' }}">
                         </div>
                     </div>
                 </div>
@@ -216,7 +248,7 @@
                     <div class="form-group">
                         <div class="input-wrapper">
                             <i class="fas fa-id-badge input-icon"></i>
-                            <input type="text" name="last_name" class="neomorph-input" placeholder="Last Name">
+                            <input type="text" name="last_name" class="neomorph-input" placeholder="Last Name" value="{{ form.last_name.value|default:'' }}">
                         </div>
                     </div>
                 </div>
@@ -225,21 +257,23 @@
             <div class="form-group">
                 <div class="input-wrapper">
                     <i class="fas fa-envelope input-icon"></i>
-                    <input type="email" name="email" class="neomorph-input" placeholder="Email Address">
+                    <input type="email" name="email" class="neomorph-input" placeholder="Email Address" value="{{ form.email.value|default:'' }}">
                 </div>
             </div>
             
             <div class="form-group">
                 <div class="input-wrapper">
                     <i class="fas fa-lock input-icon"></i>
-                    <input type="password" name="password1" class="neomorph-input" placeholder="Password" required>
+                    <input type="password" name="password1" id="password1" class="neomorph-input" placeholder="Password" required>
+                    <i class="fas fa-eye password-toggle" id="togglePassword1" onclick="togglePasswordVisibility('password1', 'togglePassword1')"></i>
                 </div>
             </div>
             
             <div class="form-group">
                 <div class="input-wrapper">
                     <i class="fas fa-lock input-icon"></i>
-                    <input type="password" name="password2" class="neomorph-input" placeholder="Confirm Password" required>
+                    <input type="password" name="password2" id="password2" class="neomorph-input" placeholder="Confirm Password" required>
+                    <i class="fas fa-eye password-toggle" id="togglePassword2" onclick="togglePasswordVisibility('password2', 'togglePassword2')"></i>
                 </div>
             </div>
             
@@ -257,4 +291,21 @@
         </div>
     </div>
 </div>
+
+<script>
+function togglePasswordVisibility(inputId, iconId) {
+    const passwordInput = document.getElementById(inputId);
+    const toggleIcon = document.getElementById(iconId);
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.classList.remove('fa-eye');
+        toggleIcon.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.classList.remove('fa-eye-slash');
+        toggleIcon.classList.add('fa-eye');
+    }
+}
+</script>
 {% endblock %}
